@@ -2,6 +2,9 @@ import numpy as np
 
 import scipy.optimize as sopt
 
+# sign function
+sign = lambda x : int(x / abs(x)) if x != 0 else 0
+
 # norm shorthands
 norm_1 = lambda x : np.linalg.norm(x, 1)
 norm_F = lambda x : np.linalg.norm(x, 'fro')
@@ -106,28 +109,90 @@ class SparseCode(object):
 
 
 
-def feature_sign_search(A, y, N = None):
-	'''
-	inputs: matrix A, dimension N
+def feature_sign_search(A, y, gamma):
+	r'''
+	inputs: 
+		- matrix A \in \R^{m * p}
+		- vector y \in \R^m
+
+	note:
+		x \in \R^p
+
+		y - Ax = 
+		[ y[j] - \sum_k A[j,k] x[k] ]_{j \in \N_m}
+	
+	see `paper_notes.md`. 
+		\argmax_i | \frac{\partial || y - Ax ||^2 }{ \partial x_i } |
+	reduces to
+		\argmax_i | \sum\limits_{j \in \N_m} A_{j,i} |
+	which is just the largest row sum
 	''' 
 
-	# 1: initialize
+	# * 1: initialize
+	dim_m, dim_p = A.shape
 
-	x = np.zeros(N)
+	x = np.zeros(dim_p)
 
-	theta = lambda i: (x[i] > 0) - (x[i] < 0)
+	def deriv_yAx(i, x_i = 0.0):
+		r'''
+		returns the derivative
+		\frac{\partial || y - Ax ||^2 }{ \partial x_i }
+		at x_i = 0 by default
+		'''
+
+
+
+	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
+	## theta = np.array( x_i / abs(x_i) for x_i in x )
+	theta = np.array(map(sign, x))
 
 	active_set = set()
 
-	# 2: from zero coefficients of x, select i = argmax(stuff)
-	selector = [
-		(
-			abs(None) #TODO: this derivative is rally easy and literally linear
-			if x[i] == 0
-			else None
-		)
-		for i in range(N)
-	]
+	satCond_a, satCond_b = False, False
+	
+	while not satCond_b:
+
+		# * 2: from zero coefficients of x, select i such that
+		# 		y - A x is changing most rapidly with respect to x_i
+		selector_arr = np.array([
+			(
+				sum(A[i])
+				if x[i] == 0
+				else np.float('-inf')
+			)
+			for i in range(dim_p)
+		])
+
+		i_sel = np.argmax(np.absolute(selector_arr))
+
+		# acivate x_i if it locally improves objective
+		i_deriv = deriv_yAx(i)
+		if abs(i_deriv) > gamma:
+			theta[i_sel] = (-1) * sign(i_deriv)
+			active_set.add(i_sel)
+
+		active_list = sorted(list(active_set))
+		
+		while not satCond_a:
+
+			# * 3: feature-sign step
+			A_hat = A[:,active_list]
+
+
+			# TODO
+
+			# check optimality condition a
+
+
+
+		# check optimality condition b
+
+
+
+
+
+
+
 
 
 

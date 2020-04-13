@@ -38,6 +38,7 @@ def is_zero(x):
  ##  ##   ###  ##     ##
 #### ##    ## ####    ##
 
+#test comment yeet
 class SparseCode(object):
 
 	def __init__(self, n, k):

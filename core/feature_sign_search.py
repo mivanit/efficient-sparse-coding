@@ -8,6 +8,10 @@ for Math 651 at the University of Michigan, Winter 2020
 by Michael Ivanitskiy and Vignesh Jagathese
 '''
 
+import numpy as np
+
+from util import *
+
 def feature_sign_search(A, y, gamma):
 	r'''
 	inputs: 

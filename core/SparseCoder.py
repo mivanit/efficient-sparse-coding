@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class SparseCoder(object):
 
 	def __init__(self, n, k):
@@ -8,7 +11,10 @@ class SparseCoder(object):
 		
 		self.n = n
 		self.k = k
-		self.B = np.full((n,k), np.nan)
+		self.B = np.full((k,n), np.nan)
+		
+		# need to know training data to get dimension m
+		self.S = None
 
 	def train(self, X):
 		r'''

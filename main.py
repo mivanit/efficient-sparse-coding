@@ -2,6 +2,16 @@ import numpy as np
 
 import scipy.optimize as sopt
 
+
+##     ## ######## #### ##
+##     ##    ##     ##  ##
+##     ##    ##     ##  ##
+##     ##    ##     ##  ##
+##     ##    ##     ##  ##
+##     ##    ##     ##  ##
+ #######     ##    #### ########
+
+
 # sign function
 sign = lambda x : int(x / abs(x)) if x != 0 else 0
 
@@ -20,6 +30,13 @@ def is_zero(x):
 	return abs(x) < THRESH
 
 
+#### ##    ## #### ########
+ ##  ###   ##  ##     ##
+ ##  ####  ##  ##     ##
+ ##  ## ## ##  ##     ##
+ ##  ##  ####  ##     ##
+ ##  ##   ###  ##     ##
+#### ##    ## ####    ##
 
 class SparseCode(object):
 
@@ -33,16 +50,28 @@ class SparseCode(object):
 		self.k = k
 		self.B = np.full((n,k), np.nan)
 
+	########  ##     ## ##     ## ##     ## ##    ##
+	##     ## ##     ## ###   ### ###   ###  ##  ##
+	##     ## ##     ## #### #### #### ####   ####
+	##     ## ##     ## ## ### ## ## ### ##    ##
+	##     ## ##     ## ##     ## ##     ##    ##
+	##     ## ##     ## ##     ## ##     ##    ##
+	########   #######  ##     ## ##     ##    ##
+
+	# * dummy solvers to test portions of code, and have a baseline to compare to
 
 	def dummy_solver(self, X, sigma, beta, c_const):
 		r'''
+		solve the whole darn problem using a standard solver
 		X \in \R^{k \times m}
 		'''
 		m = X.shape[1]
 
 		def mini_me(BS_arr):
-			'''
+			r'''
 			function to minimize
+
+			|| X - BS ||_F^2 / (2 * \sigma^2) + \beta \sum_{i,j} \rho(S_{i,j})
 			'''
 			B,S = np.split(BS_arr, self.k * m)
 			np.reshape(B, (self.k, self.n))
@@ -59,6 +88,9 @@ class SparseCode(object):
 
 			also, unpacking BS_arr every time is pointless 
 			so we just slice the array fancily
+
+			constraints are of the form:
+			\sum_i B_{i,j}^2 \leq c, 	\forall j \in \N_n
 			'''
 			def constraint(BS_arr):				
 				# # sum([ BS_arr[i*self.n + j]**2 for i in range(self.k) ])
@@ -82,11 +114,14 @@ class SparseCode(object):
 			]
 		)
 
-			
 
-
-			
-
+    ######   #######  ##       ##     ## ######## ########
+   ##    ## ##     ## ##       ##     ## ##       ##     ##
+   ##       ##     ## ##       ##     ## ##       ##     ##
+    ######  ##     ## ##       ##     ## ######   ########
+         ## ##     ## ##        ##   ##  ##       ##   ##
+   ##    ## ##     ## ##         ## ##   ##       ##    ##
+    ######   #######  ########    ###    ######## ##     ##
 
 	def train(self, X):
 		r'''
@@ -113,6 +148,17 @@ class SparseCode(object):
 		pass
 
 
+
+
+
+
+   ###    ##        ######    #######   ######
+  ## ##   ##       ##    ##  ##     ## ##    ##
+ ##   ##  ##       ##        ##     ## ##
+##     ## ##       ##   #### ##     ##  ######
+######### ##       ##    ##  ##     ##       ##
+##     ## ##       ##    ##  ##     ## ##    ##
+##     ## ########  ######    #######   ######
 
 
 
@@ -245,6 +291,7 @@ def feature_sign_search(A, y, gamma):
 		)
 
 	return x
+
 
 
 

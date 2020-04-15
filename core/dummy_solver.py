@@ -5,7 +5,7 @@ from util import *
 
 # * dummy solvers to test portions of code, and have a baseline to compare to
 
-def dummy_solver(solvr_obj, X, sigma, beta, c_const):
+def DUMMY_solver(solvr_obj, X, sigma, beta, c_const):
 	r'''
 	solve the whole darn problem using a standard solver
 	X \in \R^{k \times m}
@@ -62,5 +62,46 @@ def dummy_solver(solvr_obj, X, sigma, beta, c_const):
 	)
 
 	
-	# TODO: dummy lagrange dual learning
-	# TODO: dummy feature-sign search
+
+def DUMMY_lagrange_dual(solvr_obj, X = None, c_const = None, method = None):
+	B_init = solvr_obj.B
+	S = solvr_obj.S
+	n = solvr_obj.n
+
+	if X is None:
+		X = solvr_obj.X
+	
+	if c_const is None:
+		c_const = solvr_obj.c_const
+
+	mini_me = lambda B : norm_F(X - B @ S)**2
+
+	def constraint_factory(j):
+		return lambda B : c_const - sum([ elt**2 for elt in B[:,j] ])
+
+	res = sopt.minimize(
+		fun = mini_me,
+		x0 = B_init,
+		constraints = [ 
+			{'type' : 'ineq', 'fun' : constraint_factory(j) } 
+			for j in range(n)
+		],
+		method = method,
+	)
+
+	return res.x
+
+
+
+def DUMMY_feature_sign(A, y, gamma, method = None):
+	dim_m, dim_p = A.shape
+	mini_me = lambda x : norm_2(y - A @ x)**2 + gamma * norm_1(x)
+	
+	res = sopt.minimize(
+		fun = mini_me,
+		x0 = np.zeros(dim_p),
+		method = method,
+	)
+
+	return res.x
+

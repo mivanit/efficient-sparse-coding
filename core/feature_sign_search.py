@@ -31,10 +31,31 @@ def feature_sign_search(A, y, gamma):
 	which is just the largest row sum
 	''' 
 
+
 	# * 1: initialize
 	dim_m, dim_p = A.shape
 
 	x = np.zeros(dim_p)
+
+	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
+	## theta = np.array( x_i / abs(x_i) for x_i in x )
+	theta = np.array(map(sign, x))
+
+	active_set = set()
+
+	opmCond_a, opmCond_b = False, False
+
+
+
+
+	# * 1.B: helpers
+	def FS_unconstrained_QP_factory(M_hat, sgn_vec):
+		'''
+		objective for feature-sign step
+		used only during line search from x_hat to x_hat_new
+		'''
+		return lambda x_vec : norm_2(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
+
 
 	def deriv_yAx(i, x_i = 0.0):
 		r'''
@@ -59,13 +80,9 @@ def feature_sign_search(A, y, gamma):
 		)
 
 
-	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
-	## theta = np.array( x_i / abs(x_i) for x_i in x )
-	theta = np.array(map(sign, x))
 
-	active_set = set()
 
-	opmCond_a, opmCond_b = False, False
+
 	
 	while not opmCond_b:
 
@@ -95,23 +112,35 @@ def feature_sign_search(A, y, gamma):
 			# * 3: feature-sign step
 
 			# A_hat is submatrix of A containing only columns corresponding to active set
-			# REVIEW: not sure if this line will work
+			# REVIEW: taking submatrix and subvector here is easy to mess up
 			A_hat = A[:,active_list]
-
-			# TODO: whats a clean way to handle x_hat indecies here?
+			x_hat = x[active_list]
+			theta_hat = [sign(x[a]) for a in active_list]
 
 			# compute solution to unconstrained QP:
 			# minimize_{x_hat} || y - A_hat @ x_hat ||^2 + gamma * theta_hat.T @ x_hat
 
-			# TODO: do we /really/ need to compute matrix inverse? can we minimize more efficiently?
-			theta_hat = [sign(x[a]) for a in active_list]
-
+			# REVIEW: do we /really/ need to compute matrix inverse? can we minimize or at least compute inverse more efficiently?
+			
 			x_hat_new = np.linalg.inv(A_hat.T @ A_hat) @ (A_hat.T @ y - gamma * theta_hat / 2)
 
 			# perform a discrete line search on segment x_hat to x_hat_new
 
-			# TODO: this whole bit
+			line_search_func = FS_unconstrained_QP_factory(A_hat, theta_hat)
 
+			x_hat = coeff_discrete_line_search(x_hat, x_hat_new, line_search_func)
+
+			# update x to x_hat
+			for idx_activ in range(len(active_list)):
+				x[active_list[idx_activ]] = x_hat[idx_activ]
+
+			# remove zero coefficients of x_hat from active set, update theta
+			for idx_rem in range(len(x_hat)):
+				if is_zero(x_hat[idx_rem]):
+					active_set.remove(idx_rem)
+					A_hat, x_hat, theta_hat, x_hat_new = (None for _ in range(4))
+			
+			theta = np.array(map(sign, x))
 
 			# * 4: check optimality condition a
 			

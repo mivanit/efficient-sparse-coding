@@ -1,5 +1,9 @@
 import numpy as np
 
+from util import *
+
+from feature_sign_search import feature_sign_search
+from lagrange_dual_learn import lagrange_dual_learn
 
 DEFAULT = {
 	'c_const'	: 1e-2,
@@ -31,6 +35,8 @@ class SparseCoder(object):
 	def set_input(self, X, c_const = None, gamma = None):
 		_, self.m = X.shape
 		
+		self.X = X
+		
 		# TODO: initialize S according to distribution
 		self.S = np.zeros((self.k, self.m), 0.0)
 		
@@ -45,8 +51,13 @@ class SparseCoder(object):
 			self.gamma = DEFAULT['gamma']
 
 
+	def value(self):
+		return (
+			norm_F(self.X - (self.B @ self.S))**2 
+			+ self.gamma * sum(map(phi, self.S)) 
+		)
 
-	def train(self, X):
+	def train(self, delta : float):
 		r'''
 		X is input matrix, S is coefficient matrix,
 		self.B is the basis matrix
@@ -54,5 +65,24 @@ class SparseCoder(object):
 		X,S \in \R^{k \times m}
 		B \in \R^{k \times n}
 		'''
-		# TODO
-		pass
+
+		val = float('inf')
+		val_new = self.value()
+
+		iters = 0
+
+		# TODO: not sure if this loop is right
+		while is_zero(val - val_new, delta):
+			for i in range(self.m):
+				self.S[:,i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
+			self.B = lagrange_dual_learn(self)
+			
+			iters += 1
+
+
+		return {
+			'X' : self.X,
+			'B' : self.B,
+			'S' : self.S,
+			'iters' : iters,
+		}

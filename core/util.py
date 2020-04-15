@@ -12,8 +12,8 @@ phi = lambda x : norm_1(x)
 # float comparison threshold
 THRESH = 1e-7
 
-def is_zero(x):
-	return abs(x) < THRESH
+def is_zero(x, thresh = THRESH):
+	return abs(x) < thresh
 
 # sign function
 sign = lambda x : int(x / abs(x)) if not is_zero(x) else 0

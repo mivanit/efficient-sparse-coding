@@ -27,7 +27,7 @@ def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_cons
     
 
 
-def lagrange_dual_learn(solvr_obj, X = None, c_const = None):
+def lagrange_dual_learn(solvr_obj, X = None, c_const = None, x0 = None):
     #B = solvr_obj.B
     S = solvr_obj.S
     n = solvr_obj.n
@@ -38,8 +38,9 @@ def lagrange_dual_learn(solvr_obj, X = None, c_const = None):
     if c_const is None:
         c_const = solvr_obj.c_const
 
-    #Initial guess
-    x0 = np.zeros(n) 
+    #Initial guess = x0. If none, set to zeros (optimal for near optimal bases)
+    if x0 is None:
+        x0 = np.zeros(n)
     
     #Solve for optimal lambda
     lambda_vars = sp.optimize.minimize(lagrange_dual_func, x0, method = 'CG', args = (solvr_obj))
@@ -57,8 +58,6 @@ def lagrange_dual_learn(solvr_obj, X = None, c_const = None):
 
 
 #print(lagrange_dual_func(lambda_vars = np.eye(5), X = np.eye(5), S = np.eye(5), c_const = 0.00001))
-    
-    git 
     
     
     

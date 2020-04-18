@@ -83,8 +83,3 @@ def coeff_discrete_line_search(u, v, func):
 	# find min
 	return argmin_f(W, func)[1]
 
-
-
-
-
-

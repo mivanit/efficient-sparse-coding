@@ -38,7 +38,7 @@ class SparseCoder(object):
 		self.X = X
 		
 		# TODO: initialize S according to distribution
-		self.S = np.zeros((self.k, self.m), 0.0)
+		self.S = np.zeros((self.n, self.m), 0.0)
 		
 		if c_const is not None:
 			self.c_const = c_const
@@ -62,8 +62,9 @@ class SparseCoder(object):
 		X is input matrix, S is coefficient matrix,
 		self.B is the basis matrix
 
-		X,S \in \R^{k \times m}
+		X \in \R^{k \times m}
 		B \in \R^{k \times n}
+		S \in \R^{n \times m}
 		'''
 
 		val = float('inf')

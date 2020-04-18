@@ -18,6 +18,7 @@ USAGE:
 		n  		:  num basis vectors
 		gamma 	:  constant
 		c_const :  constrainst constant
+		delta   :  iteration termination threshold
 		file_X  :  path to array file
 '''
 
@@ -55,7 +56,7 @@ def arg_val(key_set, argv = sys.argv, val = True):
 	return None
 
 
-def arg_val_assign(key_set, var, req_type = str, argv = sys.argv):
+def arg_val_assign(key_set, var, argv = sys.argv):
 	if temp := arg_val(key_set, argv) is not None:
 		var = temp
 
@@ -74,7 +75,7 @@ def load_setttings(file_set):
 	with open(file_set, 'r') as f:
 		for line in f:
 			a,b = line.split(':')
-			output[a.strip()] = req_type(b.strip())
+			output[a.strip()] = b.strip()
 
 	return output
 
@@ -93,15 +94,15 @@ def argParser(argv = sys.argv):
 	# read (overwriting if present) settings from command line args
 
 	# solver vars
-	arg_val_assign(['-n'], settings['n'], int, argv)
-	arg_val_assign(['-g', '--gamma'], settings['gamma'], float, argv)
-	arg_val_assign(['-c', '--c_const'], settings['c_const'], float, argv)
-	arg_val_assign(['-d', '--delta'], settings['delta'], float, argv)
+	arg_val_assign(['-n'], settings.get('n'), argv)
+	arg_val_assign(['-g', '--gamma'],  settings.get('gamma'), argv)
+	arg_val_assign(['-c', '--c_const'],  settings.get('c_const'), argv)
+	arg_val_assign(['-d', '--delta'],  settings.get('delta'), argv)
 	
 	# file paths
-	arg_val_assign(['--file_X'], settings['file_X'], argv)
-	arg_val_assign(['--file_B'], settings['file_B'], argv)
-	arg_val_assign(['--file_S'], settings['file_S'], argv)
+	arg_val_assign(['--file_X'],  settings.get('file_X'), argv)
+	arg_val_assign(['--file_B'],  settings.get('file_B'), argv)
+	arg_val_assign(['--file_S'],  settings.get('file_S'), argv)
 
 
 	# test for required settings present
@@ -112,6 +113,12 @@ def argParser(argv = sys.argv):
 		print(__doc__)
 		print('='*50)
 		raise Exception('Missing a required argument! exiting program')
+
+	# change types
+	for s in 'gamma,c_const,delta'.split(','):
+		settings[s] = float(settings[s])
+
+	settings['n'] = int(settings['n'])
 
 	# output files
 	for s in ['file_B', 'file_S', 'out_fmt']:
@@ -210,7 +217,7 @@ def main(argv = sys.argv):
 
 	print('SETTINGS:')
 	for key,val in cfg.items():
-		print('\t%s\t:\t%s' % (str(key), str(val)))
+		print('\t%s\t:\t%s\t:\t%s' % (str(key), str(val), str(type(val))))
 	print('-'*60)
 
 	print('> setting up solver')
@@ -226,7 +233,7 @@ def main(argv = sys.argv):
 
 
 	
-
+main()
 
 
 

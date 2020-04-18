@@ -1,0 +1,5 @@
+n  		:  5
+gamma 	:  1.0
+c_const :  1.0
+delta   :  0.001
+file_X  :  ../data/uniform.npy

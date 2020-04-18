@@ -1,5 +1,5 @@
 import numpy as np
-import scipy as sp
+import scipy.optimize as sopt
 
 #from util import *
 
@@ -27,7 +27,7 @@ def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_cons
     
 
 
-def lagrange_dual_learn(solvr_obj, X = None, c_const = None, x0 = None):
+def lagrange_dual_learn(solvr_obj, X = None, c_const = None, x0 = None, OptMethod = 'CG'):
     #B = solvr_obj.B
     S = solvr_obj.S
     n = solvr_obj.n
@@ -43,7 +43,7 @@ def lagrange_dual_learn(solvr_obj, X = None, c_const = None, x0 = None):
         x0 = np.zeros(n)
     
     #Solve for optimal lambda
-    lambda_vars = sp.optimize.minimize(lagrange_dual_func, x0, method = 'CG', args = (solvr_obj))
+    lambda_vars = sopt.minimize(lagrange_dual_func, x0, method = OptMethod, args = (solvr_obj))
     
     #Set Lambda
     Lambda = np.diag(lambda_vars)

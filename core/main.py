@@ -55,7 +55,7 @@ def arg_val(key_set, argv = sys.argv, val = True):
 	return None
 
 
-def arg_val_assign(key_set, var, argv = sys.argv):
+def arg_val_assign(key_set, var, req_type = str, argv = sys.argv):
 	if temp := arg_val(key_set, argv) is not None:
 		var = temp
 
@@ -67,13 +67,14 @@ def load_setttings(file_set):
 		n  		:  num basis vectors
 		gamma 	:  constant
 		c_const :  constrainst constant
+		delta   :  iteration termination threshold
 		file_X  :  path to array file
 	'''
 	output = dict()
 	with open(file_set, 'r') as f:
 		for line in f:
 			a,b = line.split(':')
-			output[a.strip()] = b.strip()
+			output[a.strip()] = req_type(b.strip())
 
 	return output
 
@@ -92,9 +93,10 @@ def argParser(argv = sys.argv):
 	# read (overwriting if present) settings from command line args
 
 	# solver vars
-	arg_val_assign(['-n'], settings['n'], argv)
-	arg_val_assign(['-g', '--gamma'], settings['gamma'], argv)
-	arg_val_assign(['-c', '--c_const'], settings['c_const'], argv)
+	arg_val_assign(['-n'], settings['n'], int, argv)
+	arg_val_assign(['-g', '--gamma'], settings['gamma'], float, argv)
+	arg_val_assign(['-c', '--c_const'], settings['c_const'], float, argv)
+	arg_val_assign(['-d', '--delta'], settings['delta'], float, argv)
 	
 	# file paths
 	arg_val_assign(['--file_X'], settings['file_X'], argv)
@@ -105,7 +107,7 @@ def argParser(argv = sys.argv):
 	# test for required settings present
 	if any([
 		settings.get(s, None) is None
-		for s in 'n,gamma,c_const,file_X'.split(',')
+		for s in 'n,gamma,c_const,delta,file_X'.split(',')
 	]):
 		print(__doc__)
 		print('='*50)
@@ -155,6 +157,8 @@ def load_X(file_in):
 
 
 def save_results(results, settings):
+	res_B, res_S = results
+
 	file_in_name, file_in_type = settings['file_X'].split('.')[-2:]
 
 	if settings['out_fmt'] is None:
@@ -166,8 +170,11 @@ def save_results(results, settings):
 	if settings['file_S'] is None:
 		settings['file_S'] = file_in_name + '_S' + '.' + settings['out_fmt']
 
+	save_arr(res_B, settings['file_B'], settings['out_fmt'])
+	save_arr(res_S, settings['file_S'], settings['out_fmt'])
 
-def save_arr(arr, fmt, name):
+
+def save_arr(arr, name, fmt):
 	if fmt in DICT_SAVE_SPLITCHAR:
 		np.savetxt(name, arr, delimiter = DICT_SAVE_SPLITCHAR[fmt])
 	
@@ -178,8 +185,6 @@ def save_arr(arr, fmt, name):
 		raise Exception('invalid format:\t%s' % fmt)
 
 	
-	
-
 
 
 
@@ -195,13 +200,34 @@ def save_arr(arr, fmt, name):
 
 def main(argv = sys.argv):
 
-	settings = argParser(argv)
+	print('> reading settings')
+	cfg = argParser(argv)
 
-	arr_X = load_X(settings['file_X'])
+	print('> reading input array')
+	arr_X = load_X(cfg['file_X'])
 
-	k,m = arr_X.shape
+	cfg['k'],cfg['m'] = arr_X.shape
 
-	coder = SparseCoder(n, k, arr_X, c_const, gamma)
+	print('SETTINGS:')
+	for key,val in cfg.items():
+		print('\t%s\t:\t%s' % (str(key), str(val)))
+	print('-'*60)
+
+	print('> setting up solver')
+	coder = SparseCoder(cfg['n'], cfg['k'], arr_X, cfg['c_const'], cfg['gamma'])
+
+	print('> solving')
+	res = coder.train(cfg['delta'])
+
+	print('> done! iterations: \t%d' % res['iters'])
+
+	print('> saving results')
+	save_results( (res['B'], res['S']), cfg )
+
+
+	
+
+
 
 
 	

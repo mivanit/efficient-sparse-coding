@@ -27,7 +27,7 @@ def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_cons
     trace_mat5 = c_const * Lambda
 
 
-    return -1 * (np.trace(trace_mat3at1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5))
+    return -1 * (np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5))
     
 
 

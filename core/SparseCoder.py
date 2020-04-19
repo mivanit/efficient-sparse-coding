@@ -105,10 +105,15 @@ class SparseCoder(object):
 		# compute gamma for feature sign search
 		gamma = 2 * (self.sigma**2) * self.beta
 
+		# iterate until within delta of 0
 		while not is_zero(rem, delta):
+
+			# lagrange step
+			self.B = lagrange_dual_learn(self)
+
+			# feature sign step
 			for i in range(self.m):
 				self.S[i] = feature_sign_search(self.B, self.X[:,i], gamma)
-			self.B = lagrange_dual_learn(self)
 
 			val = val_new
 			val_new = self.value()

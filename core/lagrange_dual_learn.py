@@ -19,11 +19,15 @@ def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_cons
     		c_const = solvr_obj.c_const
     
     Lambda = np.diag(lambda_vars)
-    trace_mat = X.T @ X - X @ S.T @ (np.linalg.inv(S @ S.T + Lambda)) @ (X @ S.T).T - c_const * Lambda
     
-    
-    
-    return -1 * np.trace(trace_mat) 
+    trace_mat1 = X.T @ X
+    trace_mat2 = X @ S.T
+    trace_mat3 = np.linalg.inv(S @ S.T + Lambda)
+    trace_mat4 = (X @ S.T).T
+    trace_mat5 = c_const * Lambda
+
+
+    return -1 * np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5)
     
 
 
@@ -48,24 +52,26 @@ def lagrange_dual_learn(solvr_obj = None, S = None, n = None, X = None, c_const 
     if x0 is None:
         x0 = np.zeros(n)
     
+
     #Solve for optimal lambda
-    lambda_vars = sopt.minimize(lagrange_dual_func, x0, method = OptMethod, args = (solvr_obj, S, X, c_const))
-    
+    lambda_vars = sopt.minimize(lagrange_dual_func, x0, method = OptMethod, args = (solvr_obj, X, S, c_const))
     #Set Lambda
-    Lambda = np.diag(lambda_vars)
+    Lambda = np.diag(lambda_vars.x)
     
     #Returns B^T, for B corresponding to basis matrix
     #FEEL FREE TO TRANSPOSE IF YOU PREFER B BEING RETURNED INSTEAD
     BT = np.linalg.inv(S @ S.T + Lambda) @ (X @ S.T).T
-    
-    
+
     return BT
     
 
 
-#print(lagrange_dual_func(lambda_vars = np.eye(5), X = np.eye(5), S = np.eye(5), c_const = 0.00001))
-lagrange_dual_learn(S = np.random.randint(5, size = (6,5)), X = np.random.randint(5, size = (3,5)), n = 6, c_const = 0.001) 
-    
+###### LAZY BOI TESTS ##################
+#n0 = 60
+#m0 = 50
+#k0 = 30
+#print(lagrange_dual_learn(S = np.random.randint(5, size = (n0,m0)), X = np.random.randint(5, size = (k0,m0)), n = n0, c_const = 0.001))
+#############################################
     
     
     

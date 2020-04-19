@@ -83,7 +83,7 @@ def feature_sign_search(A, y, gamma):
 		# 		y - A x is changing most rapidly with respect to x_i
 		selector_arr = np.array([
 			(
-				sum(A[i])
+				sum(A[:,i])
 				if is_zero(x[i])
 				else np.float('-inf')
 			)
@@ -125,9 +125,15 @@ def feature_sign_search(A, y, gamma):
 			## x_hat = x[active_list]
 			## theta_hat = np.array([sign(x[a]) for a in active_list])
 			# A_hat = select_cols(A, active_list)
-			A_hat = np.delete(A, [i for i in range(dim_p) if i not in active_set], 1)
+			A_hat = np.delete(A, [i for i in range(dim_p) if i not in active_set], 0).T
 			x_hat = select_elts(x, active_list)
 			theta_hat = np.array([sign(a) for a in x_hat])
+
+			# print(A.shape)
+			# print(x.shape)
+			# print(y.shape)
+			# print(A_hat.shape)
+			# print(x_hat.shape)
 
 			# compute solution to unconstrained QP:
 			# minimize_{x_hat} || y - A_hat @ x_hat ||^2 + gamma * theta_hat.T @ x_hat

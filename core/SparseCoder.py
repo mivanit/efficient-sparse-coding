@@ -25,7 +25,7 @@ class SparseCoder(object):
 
 		# TODO: initialize B properly?
 		# self.B = np.full((k,n), np.nan, dtype = np.float)
-		self.B = np.random.rand(k,n)
+		self.B = np.random.rand(k,n) * c_const
 		
 		# need to know training data to get dimension m
 		self.m = None

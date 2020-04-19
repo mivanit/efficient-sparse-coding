@@ -41,7 +41,8 @@ def argmin_f(arr, func):
 	min_val = func(arr[0])
 
 	for i in range(len(arr)):
-		if (temp := func(arr[i])) < min_val:
+		temp := func(arr[i])
+		if temp < min_val:
 			min_val = temp
 			min_idx = i
 	

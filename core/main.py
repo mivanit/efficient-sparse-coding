@@ -57,7 +57,8 @@ def arg_val(key_set, argv = sys.argv, val = True):
 
 
 def arg_val_assign(key_set, var, argv = sys.argv):
-	if temp := arg_val(key_set, argv) is not None:
+	temp = arg_val(key_set, argv)
+	if temp is not None:
 		var = temp
 
 

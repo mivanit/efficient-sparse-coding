@@ -79,8 +79,6 @@ def feature_sign_search(A, y, gamma):
 
 		opmCond_a = False
 
-		print('B')
-
 		# * 2: from zero coefficients of x, select i such that
 		# 		y - A x is changing most rapidly with respect to x_i
 		selector_arr = np.array([
@@ -111,7 +109,7 @@ def feature_sign_search(A, y, gamma):
 				selector_arr[i_sel] = np.float('-inf')
 				num_tested_i += 1
 				if num_tested_i >= dim_p:
-					# TODO: this happens too much
+					# REVIEW: this happens too much
 					print('no valid index in x_hat found, selecting at random')
 					theta[i_sel] = (-1) * sign(i_deriv)
 					active_set.add(i_sel)
@@ -119,8 +117,6 @@ def feature_sign_search(A, y, gamma):
 		active_list = sorted(list(active_set))
 	
 		while not opmCond_a:
-
-			print('A')
 
 			# * 3: feature-sign step
 
@@ -183,8 +179,13 @@ def feature_sign_search(A, y, gamma):
 		# set of j where x_j == 0
 		set_j_is0 = {
 			j for j in range(dim_p)
-			if is_zero( x[j] )
+			if x[j] == 0
 		}
+		# REVIEW: is strict equality ok here?
+
+		print('-'*50)
+		for j in set_j_is0:
+			print('\t' + str(deriv_yAx(j)))
 
 		opmCond_b = all( 
 			abs(deriv_yAx(j)) <= gamma

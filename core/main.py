@@ -16,7 +16,8 @@ USAGE:
 
 	valid settings file should contain values for:
 		n  		:  num basis vectors
-		gamma 	:  constant
+		sigma 	:  constant for distribution
+		beta	:  constant
 		c_const :  constrainst constant
 		delta   :  iteration termination threshold
 		file_X  :  path to array file
@@ -67,7 +68,8 @@ def load_setttings(file_set):
 	'''
 	valid settings file should contain values for:
 		n  		:  num basis vectors
-		gamma 	:  constant
+		sigma 	:  constant for distribution
+		beta	:  constant
 		c_const :  constrainst constant
 		delta   :  iteration termination threshold
 		file_X  :  path to array file
@@ -96,7 +98,8 @@ def argParser(argv = sys.argv):
 
 	# solver vars
 	arg_val_assign(['-n'], settings.get('n'), argv)
-	arg_val_assign(['-g', '--gamma'],  settings.get('gamma'), argv)
+	arg_val_assign(['-s', '--sigma'],  settings.get('sigma'), argv)
+	arg_val_assign(['-b', '--beta'],  settings.get('beta'), argv)
 	arg_val_assign(['-c', '--c_const'],  settings.get('c_const'), argv)
 	arg_val_assign(['-d', '--delta'],  settings.get('delta'), argv)
 	
@@ -109,14 +112,14 @@ def argParser(argv = sys.argv):
 	# test for required settings present
 	if any([
 		settings.get(s, None) is None
-		for s in 'n,gamma,c_const,delta,file_X'.split(',')
+		for s in 'n,sigma,beta,c_const,delta,file_X'.split(',')
 	]):
 		print(__doc__)
 		print('='*50)
 		raise Exception('Missing a required argument! exiting program')
 
 	# change types
-	for s in 'gamma,c_const,delta'.split(','):
+	for s in 'sigma,beta,c_const,delta'.split(','):
 		settings[s] = float(settings[s])
 
 	settings['n'] = int(settings['n'])
@@ -229,7 +232,7 @@ def main(argv = sys.argv):
 	print('-'*60)
 
 	print('> setting up solver')
-	coder = SparseCoder(cfg['n'], cfg['k'], arr_X, cfg['c_const'], cfg['gamma'])
+	coder = SparseCoder(cfg['n'], cfg['k'], arr_X, cfg['c_const'], cfg['sigma'], cfg['beta'])
 
 	print('> solving')
 	res = coder.train(cfg['delta'], True)

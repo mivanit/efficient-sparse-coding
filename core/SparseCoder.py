@@ -7,13 +7,14 @@ from lagrange_dual_learn import lagrange_dual_learn
 
 DEFAULT = {
 	'c_const'	: 1e-2,
-	'gamma'		: 1e-5,
+	'sigma'		: 1,
+	'beta'		: 1,
 }
 
 
 class SparseCoder(object):
 
-	def __init__(self, n, k, X = None, c_const = None, gamma = None):
+	def __init__(self, n, k, X = None, c_const = None, sigma = None, beta = None):
 		'''
 		n is dimension of basis,
 		k is data dimension
@@ -32,7 +33,7 @@ class SparseCoder(object):
 
 		# can also pass input data to ctor
 		if X is not None:
-			self.set_input(X, c_const, gamma)
+			self.set_input(X, c_const, sigma, beta)
 
 	def print_cfg(self):
 		print('\tn    \t:\t%d' % self.n)
@@ -43,14 +44,18 @@ class SparseCoder(object):
 		print('\tS dim\t:\t%s' % str(self.S.shape))
 		# print('X data\t:\t%s' % str(self.X))
 
-	def set_input(self, X, c_const = None, gamma = None):
+	def set_input(self, X, c_const = None, sigma = None, beta = None):
 		_, self.m = X.shape
 		
 		self.X = X
-		
-		# TODO: initialize S according to distribution
-		# self.S = np.zeros((self.n, self.m), dtype = np.float)
-		self.S = np.zeros((self.n, self.m), dtype = np.float)
+
+		# init S randomly
+		self.S = np.random.random((self.n, self.m))
+		# get exponenitially distributed scaling factors
+		temp_S_mags = np.random.exponential(beta, self.m)
+		# scale each vector such that the norm is as generated
+		temp_S_scale = np.array([ temp_S_mags[i] / norm_1(self.S[:,i]) for i in range(self.m) ])
+		self.S = self.S * temp_S_scale
 
 		self.print_cfg()
 		
@@ -59,16 +64,21 @@ class SparseCoder(object):
 		else:
 			self.c_const = DEFAULT['c_const']
 
-		if gamma is not None:
-			self.gamma = float(gamma)
+		if sigma is not None:
+			self.sigma = float(sigma)
 		else:
-			self.gamma = DEFAULT['gamma']
+			self.sigma = DEFAULT['sigma']
+
+		if beta is not None:
+			self.beta = float(beta)
+		else:
+			self.beta = DEFAULT['beta']
 
 
 	def value(self):
 		return (
-			norm_F(self.X - (self.B @ self.S))**2 
-			+ self.gamma * sum(map(phi, self.S)) 
+			norm_F(self.X - (self.B @ self.S))**2.0 
+			+ 2 * (self.sigma**2.0) * self.beta * sum(map(phi, self.S)) 
 		)
 
 	def train(self, delta : float, verbose = False):
@@ -92,11 +102,18 @@ class SparseCoder(object):
 			print('\t' + '-'*20)
 			print('\t{:5d}\t{:10f}'.format(iters, rem))
 
-		# TODO: not sure if this loop is right
+		# compute gamma for feature sign search
+		gamma = 2 * (self.sigma**2) * self.beta
+
+		# iterate until within delta of 0
 		while not is_zero(rem, delta):
-			for i in range(self.m):
-				self.S[i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
+
+			# lagrange step
 			self.B = lagrange_dual_learn(self)
+
+			# feature sign step
+			for i in range(self.m):
+				self.S[i] = feature_sign_search(self.B, self.X[:,i], gamma)
 
 			val = val_new
 			val_new = self.value()

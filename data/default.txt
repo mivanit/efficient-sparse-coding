@@ -1,5 +1,6 @@
 n  		:  10
-gamma 	:  0.00000000
+sigma 	:  0.1
+beta	:  0.001
 c_const :  0.00001
 delta   :  0.001
-file_X  :  ../data/uniform.npy
+file_X  :  ../data/uniform_z.npy

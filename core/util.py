@@ -46,7 +46,7 @@ def argmin_f(arr, func):
 			min_val = temp
 			min_idx = i
 	
-	return min_idx,min_val
+	return min_idx
 	
 
 
@@ -82,7 +82,7 @@ def coeff_discrete_line_search(u, v, func):
 	W = W + [ a for a in sign_change if a is not None ]
 
 	# find min
-	return argmin_f(W, func)[1]
+	return W[argmin_f(W, func)]
 
 
 
@@ -101,7 +101,7 @@ def select_rows(arr, lst_rows):
 
 def select_cols(arr, lst_cols):
 	if len(lst_cols) > 1:
-		col_data = (arr[:,i] for i in lst_cols)
+		col_data = (arr[i] for i in lst_cols)
 		return np.concatenate(col_data,0)
 	elif len(lst_cols) == 1:
 		return np.array([arr[lst_cols[0]]]).T

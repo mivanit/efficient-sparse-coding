@@ -37,7 +37,7 @@ class SparseCoder(object):
 	def print_cfg(self):
 		print('\tn    \t:\t%d' % self.n)
 		print('\tk    \t:\t%d' % self.k)
-		print('\tk    \t:\t%d' % self.m)
+		print('\tm    \t:\t%d' % self.m)
 		print('\tX dim\t:\t%s' % str(self.X.shape))
 		print('\tB dim\t:\t%s' % str(self.B.shape))
 		print('\tS dim\t:\t%s' % str(self.S.shape))
@@ -95,7 +95,7 @@ class SparseCoder(object):
 		# TODO: not sure if this loop is right
 		while not is_zero(rem, delta):
 			for i in range(self.m):
-				self.S[:,i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
+				self.S[i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
 			self.B = lagrange_dual_learn(self)
 
 			val = val_new

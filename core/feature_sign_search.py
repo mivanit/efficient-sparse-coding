@@ -34,8 +34,13 @@ def feature_sign_search(A, y, gamma):
 	# * 1: initialize
 	dim_m, dim_p = A.shape
 
-	y = y.reshape(*y.shape, 1)
+	# y = y.reshape(*y.shape, 1)
 	x = np.zeros(dim_p)
+
+	print(A.shape)
+	print(x.shape)
+	print(y.shape)
+
 
 	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
 	## theta = np.array( x_i / abs(x_i) for x_i in x )
@@ -122,7 +127,8 @@ def feature_sign_search(A, y, gamma):
 			## A_hat = A[:,active_list]
 			## x_hat = x[active_list]
 			## theta_hat = np.array([sign(x[a]) for a in active_list])
-			A_hat = select_cols(A, active_list)
+			# A_hat = select_cols(A, active_list)
+			A_hat = np.delete(A, [i for i in range(dim_p) if i not in active_set], 1)
 			x_hat = select_elts(x, active_list)
 			theta_hat = np.array([sign(a) for a in x_hat])
 
@@ -131,8 +137,8 @@ def feature_sign_search(A, y, gamma):
 
 			# REVIEW: do we /really/ need to compute matrix inverse? can we minimize or at least compute inverse more efficiently?
 
+			print('-'*30)
 			print(A_hat.shape)
-			print(A_hat.T.shape)
 			print(y.shape)
 			
 			x_hat_new = (
@@ -148,8 +154,10 @@ def feature_sign_search(A, y, gamma):
 
 			line_search_func = FS_unconstrained_QP_factory(A_hat, theta_hat)
 
+			print(x_hat)
 			x_hat = coeff_discrete_line_search(x_hat, x_hat_new, line_search_func)
-
+			print(x_hat)
+			
 			# update x to x_hat
 			for idx_activ in range(len(active_list)):
 				x[active_list[idx_activ]] = x_hat[idx_activ]

@@ -93,8 +93,6 @@ def feature_sign_search(A, y, gamma):
 			for i in range(dim_p)
 		])
 
-		# REVIEW: if we pick an `i` that does not improve objective, try the next best `i`?
-
 		looking_i = True
 		num_tested_i = 0
 
@@ -112,7 +110,7 @@ def feature_sign_search(A, y, gamma):
 				selector_arr[i_sel] = np.float('-inf')
 				num_tested_i += 1
 				if num_tested_i >= dim_p:
-					# REVIEW: this happens too much
+					# REVIEW: if we pick an `i` that does not improve objective, try the next best `i`?
 					print('no valid index in x_hat found, selecting at random')
 					theta[i_sel] = (-1) * sign(i_deriv)
 					active_set.add(i_sel)
@@ -128,7 +126,7 @@ def feature_sign_search(A, y, gamma):
 			## x_hat = x[active_list]
 			## theta_hat = np.array([sign(x[a]) for a in active_list])
 			# A_hat = select_cols(A, active_list)
-			A_hat = np.delete(A, [i for i in range(dim_p) if i not in active_set], 0).T
+			A_hat = np.delete(A, [i for i in range(dim_p) if i not in active_set], 1)
 			x_hat = select_elts(x, active_list)
 			theta_hat = np.array([sign(a) for a in x_hat])
 
@@ -165,7 +163,7 @@ def feature_sign_search(A, y, gamma):
 			# remove zero coefficients of x_hat from active set, update theta
 			for idx_rem in range(len(x_hat)):
 				if is_zero(x_hat[idx_rem]):
-					active_set.remove(idx_rem)
+					active_set.discard(idx_rem)
 					A_hat, x_hat, theta_hat, x_hat_new = (None for _ in range(4))
 			
 			theta = np.array(list(map(sign, x)))
@@ -180,7 +178,8 @@ def feature_sign_search(A, y, gamma):
 
 			print('-'*50)
 			for j in set_j_not0:
-				print('\t' + str(deriv_yAx(j)))
+				# print('\t' + str(deriv_yAx(j)))
+				print('\t' + str(deriv_yAx(j) + gamma * sign(x[j])))
 
 			opmCond_a = all( 
 				is_zero( deriv_yAx(j) + gamma * sign(x[j]) )
@@ -196,7 +195,7 @@ def feature_sign_search(A, y, gamma):
 		}
 		# REVIEW: is strict equality ok here?
 
-		print('-'*50)
+		print('*'*50)
 		for j in set_j_is0:
 			print('\t' + str(deriv_yAx(j)))
 

@@ -45,7 +45,7 @@ def lagrange_dual_learn(solvr_obj = None, S = None, n = None, X = None, c_const 
     if n is None:
         n = solvr_obj.n
 	
-    if c_const is None:
+    if c_const is None: 
         c_const = solvr_obj.c_const
 
     #Initial guess = x0. If none, set to zeros (optimal for near optimal bases)
@@ -58,15 +58,9 @@ def lagrange_dual_learn(solvr_obj = None, S = None, n = None, X = None, c_const 
     #Set Lambda
     Lambda = np.diag(lambda_vars.x)
 
-    print(X.shape)
-    print(S.shape)
-    print(Lambda.shape)
-    
     #Returns B^T, for B corresponding to basis matrix
     #FEEL FREE TO TRANSPOSE IF YOU PREFER B BEING RETURNED INSTEAD
     B = (np.linalg.inv(S @ S.T + Lambda) @ (X @ S.T).T).T
-
-    print('*'*20)
 
     return B
     

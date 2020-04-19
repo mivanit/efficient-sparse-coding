@@ -25,6 +25,7 @@ USAGE:
 
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 
 from SparseCoder import *
 # from util import *
@@ -241,6 +242,11 @@ def main(argv = sys.argv):
 
 	print('> saving results')
 	save_results( (res['B'], res['S']), cfg )
+
+	plt.plot(res['val'])
+	plt.show()
+
+
 
 
 	

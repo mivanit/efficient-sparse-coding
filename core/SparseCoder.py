@@ -83,9 +83,9 @@ class SparseCoder(object):
 
 	def value(self):
 		print('-'*50)
-		print(self.X.shape)
-		print(self.B.shape)
-		print(self.S.shape)
+		# print(self.X.shape)
+		# print(self.B.shape)
+		# print(self.S.shape)
 
 		return (
 			norm_F(self.X - (self.B @ self.S))**2.0 
@@ -105,6 +105,9 @@ class SparseCoder(object):
 		val = float('inf')
 		val_new = self.value()
 		rem = float('inf')
+
+
+		self.val_data = []
 
 		iters = 0
 
@@ -127,6 +130,8 @@ class SparseCoder(object):
 			val_new = self.value()
 			rem = val - val_new
 
+			self.val_data.append(val_new)
+
 			if verbose:
 				print('\t{:5d}\t{:10f}'.format(iters, rem))
 			iters += 1
@@ -137,4 +142,5 @@ class SparseCoder(object):
 			'B' : self.B,
 			'S' : self.S,
 			'iters' : iters,
+			'val'	: self.val_data,
 		}

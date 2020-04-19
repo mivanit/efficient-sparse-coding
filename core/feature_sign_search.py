@@ -175,6 +175,10 @@ def feature_sign_search(A, y, gamma):
 				if not is_zero( x[j] )
 			}
 
+			print('-'*50)
+			for j in set_j_not0:
+				print('\t' + str(deriv_yAx(j)))
+
 			opmCond_a = all( 
 				is_zero( deriv_yAx(j) + gamma * sign(x[j]) )
 				for j in set_j_not0

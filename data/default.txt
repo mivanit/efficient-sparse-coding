@@ -1,5 +1,5 @@
 n  		:  10
-sigma 	:  0.001
+sigma 	:  0.1
 beta	:  0.01
 c_const :  0.1
 delta   :  0.001

@@ -42,6 +42,10 @@ class SparseCoder(object):
 		print('\tX dim\t:\t%s' % str(self.X.shape))
 		print('\tB dim\t:\t%s' % str(self.B.shape))
 		print('\tS dim\t:\t%s' % str(self.S.shape))
+		print('\tc_const\t:\t%f' % self.c_const)
+		print('\tsigma  \t:\t%f' % self.sigma)
+		print('\tbeta   \t:\t%f' % self.beta)
+		print('\tgamma  \t:\t%f' % self.gamma)
 		# print('X data\t:\t%s' % str(self.X))
 
 	def set_input(self, X, c_const = None, sigma = None, beta = None):
@@ -56,8 +60,6 @@ class SparseCoder(object):
 		# scale each vector such that the norm is as generated
 		temp_S_scale = np.array([ temp_S_mags[i] / norm_1(self.S[:,i]) for i in range(self.m) ])
 		self.S = self.S * temp_S_scale
-
-		self.print_cfg()
 		
 		if c_const is not None:
 			self.c_const = float(c_const)
@@ -74,6 +76,10 @@ class SparseCoder(object):
 		else:
 			self.beta = DEFAULT['beta']
 
+		# compute gamma for feature sign search
+		self.gamma = 2 * (self.sigma**2) * self.beta
+
+		self.print_cfg()		
 
 	def value(self):
 		return (
@@ -102,9 +108,6 @@ class SparseCoder(object):
 			print('\t' + '-'*20)
 			print('\t{:5d}\t{:10f}'.format(iters, rem))
 
-		# compute gamma for feature sign search
-		gamma = 2 * (self.sigma**2) * self.beta
-
 		# iterate until within delta of 0
 		while not is_zero(rem, delta):
 
@@ -113,7 +116,7 @@ class SparseCoder(object):
 
 			# feature sign step
 			for i in range(self.m):
-				self.S[i] = feature_sign_search(self.B, self.X[:,i], gamma)
+				self.S[i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
 
 			val = val_new
 			val_new = self.value()

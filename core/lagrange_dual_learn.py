@@ -57,12 +57,18 @@ def lagrange_dual_learn(solvr_obj = None, S = None, n = None, X = None, c_const 
     lambda_vars = sopt.minimize(lagrange_dual_func, x0, method = OptMethod, args = (solvr_obj, X, S, c_const))
     #Set Lambda
     Lambda = np.diag(lambda_vars.x)
+
+    print(X.shape)
+    print(S.shape)
+    print(Lambda.shape)
     
     #Returns B^T, for B corresponding to basis matrix
     #FEEL FREE TO TRANSPOSE IF YOU PREFER B BEING RETURNED INSTEAD
-    BT = np.linalg.inv(S @ S.T + Lambda) @ (X @ S.T).T
+    B = (np.linalg.inv(S @ S.T + Lambda) @ (X @ S.T).T).T
 
-    return BT
+    print('*'*20)
+
+    return B
     
 
 

@@ -83,3 +83,26 @@ def coeff_discrete_line_search(u, v, func):
 	# find min
 	return argmin_f(W, func)[1]
 
+
+
+
+def select_elts(arr, lst_idx):
+	return np.array([arr[i] for i in lst_idx])
+
+def select_rows(arr, lst_rows):
+	if len(lst_rows) > 1:
+		row_data = (arr[i] for i in lst_rows)
+		return np.concatenate(row_data,1)
+	elif len(lst_rows) == 1:
+		return np.array([arr[lst_rows[0]]])
+	else:
+		raise Exception('select_rows: lst_rows empty')
+
+def select_cols(arr, lst_cols):
+	if len(lst_cols) > 1:
+		col_data = (arr[:,i] for i in lst_cols)
+		return np.concatenate(col_data,0)
+	elif len(lst_cols) == 1:
+		return np.array([arr[lst_cols[0]]])
+	else:
+		raise Exception('select_cols: lst_cols empty')

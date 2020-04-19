@@ -21,7 +21,10 @@ class SparseCoder(object):
 		
 		self.n = int(n)
 		self.k = int(k)
-		self.B = np.full((k,n), np.nan, dtype = np.float)
+
+		# TODO: initialize B properly?
+		# self.B = np.full((k,n), np.nan, dtype = np.float)
+		self.B = np.random.rand(k,n)
 		
 		# need to know training data to get dimension m
 		self.m = None
@@ -32,12 +35,13 @@ class SparseCoder(object):
 			self.set_input(X, c_const, gamma)
 
 	def print_cfg(self):
-		print('n    \t:\t%d' % self.n)
-		print('k    \t:\t%d' % self.k)
-		print('k    \t:\t%d' % self.m)
-		print('X dim\t:\t%s' % self.X.shape)
-		print('B dim\t:\t%s' % self.B.shape)
-		print('S dim\t:\t%s' % self.S.shape)
+		print('\tn    \t:\t%d' % self.n)
+		print('\tk    \t:\t%d' % self.k)
+		print('\tk    \t:\t%d' % self.m)
+		print('\tX dim\t:\t%s' % str(self.X.shape))
+		print('\tB dim\t:\t%s' % str(self.B.shape))
+		print('\tS dim\t:\t%s' % str(self.S.shape))
+		# print('X data\t:\t%s' % str(self.X))
 
 	def set_input(self, X, c_const = None, gamma = None):
 		_, self.m = X.shape
@@ -45,11 +49,10 @@ class SparseCoder(object):
 		self.X = X
 		
 		# TODO: initialize S according to distribution
-		self.S = np.zeros((self.n, self.m), 0.0)
+		# self.S = np.zeros((self.n, self.m), dtype = np.float)
+		self.S = np.zeros((self.n, self.m), dtype = np.float)
 
 		self.print_cfg()
-
-		
 		
 		if c_const is not None:
 			self.c_const = float(c_const)
@@ -68,7 +71,7 @@ class SparseCoder(object):
 			+ self.gamma * sum(map(phi, self.S)) 
 		)
 
-	def train(self, delta : float):
+	def train(self, delta : float, verbose = False):
 		r'''
 		X is input matrix, S is coefficient matrix,
 		self.B is the basis matrix
@@ -80,15 +83,27 @@ class SparseCoder(object):
 
 		val = float('inf')
 		val_new = self.value()
+		rem = float('inf')
 
 		iters = 0
 
+		if verbose:
+			print('\t  {:10s}   {:3s}'.format('iter', 'rem'))
+			print('\t' + '-'*20)
+			print('\t{:5d}\t{:10f}'.format(iters, rem))
+
 		# TODO: not sure if this loop is right
-		while is_zero(val - val_new, delta):
+		while not is_zero(rem, delta):
 			for i in range(self.m):
 				self.S[:,i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
 			self.B = lagrange_dual_learn(self)
-			
+
+			val = val_new
+			val_new = self.value()
+			rem = val - val_new
+
+			if verbose:
+				print('\t{:5d}\t{:10f}'.format(iters, rem))
 			iters += 1
 
 

@@ -31,7 +31,6 @@ def feature_sign_search(A, y, gamma):
 	which is just the largest row sum
 	''' 
 
-
 	# * 1: initialize
 	dim_m, dim_p = A.shape
 
@@ -39,14 +38,9 @@ def feature_sign_search(A, y, gamma):
 
 	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
 	## theta = np.array( x_i / abs(x_i) for x_i in x )
-	theta = np.array(map(sign, x))
-
+	theta = np.array(list(map(sign, x)))
 	active_set = set()
-
 	opmCond_a, opmCond_b = False, False
-
-
-
 
 	# * 1.B: helpers
 	def FS_unconstrained_QP_factory(M_hat, sgn_vec):
@@ -55,7 +49,6 @@ def feature_sign_search(A, y, gamma):
 		used only during line search from x_hat to x_hat_new
 		'''
 		return lambda x_vec : norm_2(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
-
 
 	def deriv_yAx(i, x_i = 0.0):
 		r'''
@@ -68,8 +61,9 @@ def feature_sign_search(A, y, gamma):
 			* [ A_{j,i} ]
 		see paper_notes.md
 		'''
-		x_cpy = np.copy(x)
-		x_cpy[i] = x_i
+		x_cpy = x
+		# x_cpy = np.copy(x)
+		# x_cpy[i] = x_i
 
 		return (-2) * sum(
 			A[j,i] * ( y[j] - sum(
@@ -79,10 +73,6 @@ def feature_sign_search(A, y, gamma):
 			for j in range(dim_m)
 		)
 
-
-
-
-
 	
 	while not opmCond_b:
 
@@ -90,32 +80,50 @@ def feature_sign_search(A, y, gamma):
 		# 		y - A x is changing most rapidly with respect to x_i
 		selector_arr = np.array([
 			(
+				# TODO: missing absolute value here?
 				sum(A[i])
-				if x[i] == 0
+				if is_zero(x[i])
 				else np.float('-inf')
 			)
 			for i in range(dim_p)
 		])
 
-		i_sel = np.argmax(np.absolute(selector_arr))
+		# REVIEW: if we pick an `i` that does not improve objective, try the next best `i`?
 
-		# acivate x_i if it locally improves objective
-		i_deriv = deriv_yAx(i_sel)
-		if abs(i_deriv) > gamma:
-			theta[i_sel] = (-1) * sign(i_deriv)
-			active_set.add(i_sel)
+		looking_i = True
+		num_tested_i = 0
+
+		while looking_i:
+
+			i_sel = np.argmax(np.absolute(selector_arr))
+
+			# acivate x_i if it locally improves objective
+			i_deriv = deriv_yAx(i_sel)
+			if abs(i_deriv) > gamma:
+				theta[i_sel] = (-1) * sign(i_deriv)
+				active_set.add(i_sel)
+				looking_i = False
+			else:
+				selector_arr[i_sel] = np.float('-inf')
+				num_tested_i += 1
+				if num_tested_i >= dim_p:
+					print('no valid index in x_hat found, selecting at random')
+					theta[i_sel] = (-1) * sign(i_deriv)
+					active_set.add(i_sel)
 
 		active_list = sorted(list(active_set))
-		
+	
 		while not opmCond_a:
 
 			# * 3: feature-sign step
 
 			# A_hat is submatrix of A containing only columns corresponding to active set
-			# REVIEW: taking submatrix and subvector here is easy to mess up
-			A_hat = A[:,active_list]
-			x_hat = x[active_list]
-			theta_hat = [sign(x[a]) for a in active_list]
+			## A_hat = A[:,active_list]
+			## x_hat = x[active_list]
+			## theta_hat = np.array([sign(x[a]) for a in active_list])
+			A_hat = select_cols(A, active_list)
+			x_hat = select_elts(x, active_list)
+			theta_hat = np.array([sign(a) for a in x_hat])
 
 			# compute solution to unconstrained QP:
 			# minimize_{x_hat} || y - A_hat @ x_hat ||^2 + gamma * theta_hat.T @ x_hat
@@ -140,7 +148,7 @@ def feature_sign_search(A, y, gamma):
 					active_set.remove(idx_rem)
 					A_hat, x_hat, theta_hat, x_hat_new = (None for _ in range(4))
 			
-			theta = np.array(map(sign, x))
+			theta = np.array(list(map(sign, x)))
 
 			# * 4: check optimality condition a
 			

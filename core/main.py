@@ -139,7 +139,12 @@ def argParser(argv = sys.argv):
 
 
 def load_X(file_in):
-	file_in_name, file_in_type = file_in.split('.')[-2:]
+	# this doesnt work if you want to move up a directory (or if there are periods in file/folder names)
+	# file_in_name, file_in_type = file_in.split('.')[-2:]
+	idx_temp = file_in.rfind('.')
+	file_in_name = file_in[:idx_temp]
+	file_in_type = file_in[idx_temp+1:]
+
 
 	if file_in_type == 'npy':
 		# load numpy binary
@@ -166,7 +171,9 @@ def load_X(file_in):
 def save_results(results, settings):
 	res_B, res_S = results
 
-	file_in_name, file_in_type = settings['file_X'].split('.')[-2:]
+	idx_temp = settings['file_X'].rfind('.')
+	file_in_name = settings['file_X'][:idx_temp]
+	file_in_type = settings['file_X'][idx_temp+1:]
 
 	if settings['out_fmt'] is None:
 		settings['out_fmt'] = file_in_type
@@ -224,7 +231,7 @@ def main(argv = sys.argv):
 	coder = SparseCoder(cfg['n'], cfg['k'], arr_X, cfg['c_const'], cfg['gamma'])
 
 	print('> solving')
-	res = coder.train(cfg['delta'])
+	res = coder.train(cfg['delta'], True)
 
 	print('> done! iterations: \t%d' % res['iters'])
 

@@ -11,7 +11,7 @@ def uniform(params):
 	m = int(m)
 	b = float(b)
 
-	return b * np.random.random((k,m))
+	return b * np.random.rand(k,m)
 
 
 

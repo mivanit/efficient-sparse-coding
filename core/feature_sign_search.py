@@ -37,11 +37,6 @@ def feature_sign_search(A, y, gamma):
 	# y = y.reshape(*y.shape, 1)
 	x = np.zeros(dim_p)
 
-	print(A.shape)
-	print(x.shape)
-	print(y.shape)
-
-
 	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
 	## theta = np.array( x_i / abs(x_i) for x_i in x )
 	theta = np.array(list(map(sign, x)))
@@ -82,11 +77,14 @@ def feature_sign_search(A, y, gamma):
 	
 	while not opmCond_b:
 
+		opmCond_a = False
+
+		print('B')
+
 		# * 2: from zero coefficients of x, select i such that
 		# 		y - A x is changing most rapidly with respect to x_i
 		selector_arr = np.array([
 			(
-				# TODO: missing absolute value here?
 				sum(A[i])
 				if is_zero(x[i])
 				else np.float('-inf')
@@ -113,6 +111,7 @@ def feature_sign_search(A, y, gamma):
 				selector_arr[i_sel] = np.float('-inf')
 				num_tested_i += 1
 				if num_tested_i >= dim_p:
+					# TODO: this happens too much
 					print('no valid index in x_hat found, selecting at random')
 					theta[i_sel] = (-1) * sign(i_deriv)
 					active_set.add(i_sel)
@@ -120,6 +119,8 @@ def feature_sign_search(A, y, gamma):
 		active_list = sorted(list(active_set))
 	
 		while not opmCond_a:
+
+			print('A')
 
 			# * 3: feature-sign step
 
@@ -137,10 +138,6 @@ def feature_sign_search(A, y, gamma):
 
 			# REVIEW: do we /really/ need to compute matrix inverse? can we minimize or at least compute inverse more efficiently?
 
-			print('-'*30)
-			print(A_hat.shape)
-			print(y.shape)
-			
 			x_hat_new = (
 				np.linalg.inv(A_hat.T @ A_hat)
 				@
@@ -154,10 +151,8 @@ def feature_sign_search(A, y, gamma):
 
 			line_search_func = FS_unconstrained_QP_factory(A_hat, theta_hat)
 
-			print(x_hat)
 			x_hat = coeff_discrete_line_search(x_hat, x_hat_new, line_search_func)
-			print(x_hat)
-			
+
 			# update x to x_hat
 			for idx_activ in range(len(active_list)):
 				x[active_list[idx_activ]] = x_hat[idx_activ]
@@ -182,7 +177,6 @@ def feature_sign_search(A, y, gamma):
 				is_zero( deriv_yAx(j) + gamma * sign(x[j]) )
 				for j in set_j_not0
 			)
-
 
 
 		# * 4: check optimality condition b

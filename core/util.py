@@ -10,7 +10,7 @@ phi = lambda x : norm_1(x)
 
 
 # float comparison threshold
-THRESH = 1e-7
+THRESH = 1e-5
 
 def is_zero(x, thresh = THRESH):
 	return abs(x) < thresh

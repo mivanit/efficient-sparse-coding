@@ -27,7 +27,7 @@ def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_cons
     trace_mat5 = c_const * Lambda
 
 
-    return -1 * (np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5))
+    return -1 * np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5)
     
 
 
@@ -67,10 +67,10 @@ def lagrange_dual_learn(solvr_obj = None, S = None, n = None, X = None, c_const 
 
 
 ###### LAZY BOI TESTS ##################
-#n0 = 6
-#m0 = 5
-#k0 = 3
-#print(lagrange_dual_learn(S = np.random.randint(5, size = (n0,m0)), X = np.random.randint(5, size = (k0,m0)), n = n0, c_const = 0.00001))
+#n0 = 60
+#m0 = 50
+#k0 = 30
+#print(lagrange_dual_learn(S = np.random.randint(5, size = (n0,m0)), X = np.random.randint(5, size = (k0,m0)), n = n0, c_const = 0.001))
 #############################################
     
     

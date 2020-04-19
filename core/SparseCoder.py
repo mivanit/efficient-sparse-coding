@@ -82,6 +82,11 @@ class SparseCoder(object):
 		self.print_cfg()		
 
 	def value(self):
+		print('-'*50)
+		print(self.X.shape)
+		print(self.B.shape)
+		print(self.S.shape)
+
 		return (
 			norm_F(self.X - (self.B @ self.S))**2.0 
 			+ 2 * (self.sigma**2.0) * self.beta * sum(map(phi, self.S)) 
@@ -116,7 +121,7 @@ class SparseCoder(object):
 
 			# feature sign step
 			for i in range(self.m):
-				self.S[i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
+				self.S[:,i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
 
 			val = val_new
 			val_new = self.value()

@@ -11,6 +11,7 @@ by Michael Ivanitskiy and Vignesh Jagathese
 import numpy as np
 
 from util import *
+from dummy_solver import DUMMY_feature_sign
 
 def feature_sign_search(A, y, gamma):
 	r'''
@@ -30,6 +31,8 @@ def feature_sign_search(A, y, gamma):
 		\argmax_i | \sum\limits_{j \in \N_m} A_{j,i} |
 	which is just the largest row sum
 	''' 
+
+	return DUMMY_feature_sign(A, y, gamma)
 
 	# * 1: initialize
 	dim_m, dim_p = A.shape

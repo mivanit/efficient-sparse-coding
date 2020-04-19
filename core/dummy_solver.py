@@ -96,10 +96,11 @@ def DUMMY_lagrange_dual(solvr_obj, X = None, c_const = None, method = None):
 def DUMMY_feature_sign(A, y, gamma, method = None):
 	dim_m, dim_p = A.shape
 	mini_me = lambda x : norm_2(y - A @ x)**2 + gamma * norm_1(x)
+	x0 = np.zeros(dim_p)
 	
 	res = sopt.minimize(
 		fun = mini_me,
-		x0 = np.zeros(dim_p),
+		x0 = x0,
 		method = method,
 	)
 

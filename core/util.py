@@ -103,6 +103,18 @@ def select_cols(arr, lst_cols):
 		col_data = (arr[:,i] for i in lst_cols)
 		return np.concatenate(col_data,0)
 	elif len(lst_cols) == 1:
-		return np.array([arr[lst_cols[0]]])
+		return np.array([arr[lst_cols[0]]]).T
 	else:
 		raise Exception('select_cols: lst_cols empty')
+
+
+
+def inv(arr):
+	'''
+	computes inverse, allowing for singular matricies
+	'''
+	# print(arr.shape)
+	if arr.shape == (1,1):
+		return np.array([[ 1/arr[0][0] ]])
+	else:
+		return np.linalg.inv(arr)

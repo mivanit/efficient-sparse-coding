@@ -34,6 +34,7 @@ def feature_sign_search(A, y, gamma):
 	# * 1: initialize
 	dim_m, dim_p = A.shape
 
+	y = y.reshape(*y.shape, 1)
 	x = np.zeros(dim_p)
 
 	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
@@ -129,8 +130,19 @@ def feature_sign_search(A, y, gamma):
 			# minimize_{x_hat} || y - A_hat @ x_hat ||^2 + gamma * theta_hat.T @ x_hat
 
 			# REVIEW: do we /really/ need to compute matrix inverse? can we minimize or at least compute inverse more efficiently?
+
+			print(A_hat.shape)
+			print(A_hat.T.shape)
+			print(y.shape)
 			
-			x_hat_new = np.linalg.inv(A_hat.T @ A_hat) @ (A_hat.T @ y - gamma * theta_hat / 2)
+			x_hat_new = (
+				np.linalg.inv(A_hat.T @ A_hat)
+				@
+				(
+					A_hat.T @ y
+					- gamma * theta_hat / 2
+				)
+			)
 
 			# perform a discrete line search on segment x_hat to x_hat_new
 

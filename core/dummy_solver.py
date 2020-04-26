@@ -64,18 +64,8 @@ def DUMMY_solver(solvr_obj, X, sigma, beta, c_const):
 
 	
 
-def lagrange_dual_learn(solvr_obj, X = None, c_const = None, method = None):
+def lagrange_dual_learn(X, S, n, c_const, B_init = None, method = 'CG'):
 	'''DUMMY SOLVER'''
-	B_init = solvr_obj.B
-	S = solvr_obj.S
-	n = solvr_obj.n
-
-	if X is None:
-		X = solvr_obj.X
-	
-	if c_const is None:
-		c_const = solvr_obj.c_const
-
 	mini_me = lambda B : norm_F(X - B @ S)**2
 
 	def constraint_factory(j):

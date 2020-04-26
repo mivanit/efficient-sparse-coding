@@ -9,63 +9,40 @@ import scipy.optimize as sopt
 Tr = np.trace
 inv = np.linalg.inv
 
-#WARNING: if solvr_obj = None, then X,S,c_const != None
-def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_const = None):
-          
+def lagrange_dual_factory(X, S, c_const):
     
-    if S is None:
-          S = solvr_obj.S
-          
-    if X is None:
-          X = solvr_obj.X
-    if c_const is None:
-    		c_const = solvr_obj.c_const
-    
-    Lambda = np.diag(lambda_vars)
-    
-    # trace_mat1 = X.T @ X
-    # trace_mat2 = X @ S.T
-    # trace_mat3 = np.linalg.inv(S @ S.T + Lambda)
-    # trace_mat4 = (X @ S.T).T
-    # trace_mat5 = c_const * Lambda
-
-    # return -1 * np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5)
-
-    return (
-        -1 * Tr(X.T @ X) 
-        - Tr((X @ S.T) @ (inv(S @ S.T + Lambda)) @ (X @ S.T).T) 
-        - Tr(c_const * Lambda)
-    )
-    
-
-
-def lagrange_dual_learn(solvr_obj = None, S = None, n = None, X = None, c_const = None, x0 = None, OptMethod = 'CG'):
-    #B = solvr_obj.B
-    #S = solvr_obj.S
-    #n = solvr_obj.n
-    
-    if X is None:
-        X = solvr_obj.X
-    
-    if S is None:
-        S = solvr_obj.S
+    def mini_me(lambda_vars):
+        Lambda = np.diag(lambda_vars)
         
-    if n is None:
-        n = solvr_obj.n
-	
-    if c_const is None: 
-        c_const = solvr_obj.c_const
+        # trace_mat1 = X.T @ X
+        # trace_mat2 = X @ S.T
+        # trace_mat3 = np.linalg.inv(S @ S.T + Lambda)
+        # trace_mat4 = (X @ S.T).T
+        # trace_mat5 = c_const * Lambda
+
+        # return -1 * np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5)
+
+        return (
+            -1 * Tr(X.T @ X) 
+            - Tr((X @ S.T) @ (inv(S @ S.T + Lambda)) @ (X @ S.T).T) 
+            - Tr(c_const * Lambda)
+        )
+    
+
+
+def lagrange_dual_learn(X, S, n, c_const, B_init = None, method = 'CG'):
 
     #Initial guess = x0. If none, set to zeros (optimal for near optimal bases)
-    if x0 is None:
-        x0 = np.zeros(n)
+    if B_init is None:
+        B_init = np.zeros(n)
 
     #Solve for optimal lambda
     lambda_vars = sopt.minimize(
-        lagrange_dual_func, x0, 
-        method = OptMethod, args = (solvr_obj, X, S, c_const)
+        lagrange_dual_factory(X,S,c_const),
+        B_init, 
+        method = method,
     )
-    
+
     #Set Lambda
     Lambda = np.diag(lambda_vars.x)
 

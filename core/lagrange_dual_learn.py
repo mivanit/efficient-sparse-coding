@@ -27,6 +27,8 @@ def lagrange_dual_factory(X, S, c_const):
             - Tr((X @ S.T) @ (inv(S @ S.T + Lambda)) @ (X @ S.T).T) 
             - Tr(c_const * Lambda)
         )
+
+    return mini_me
     
 
 

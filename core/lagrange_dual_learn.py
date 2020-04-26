@@ -6,6 +6,9 @@ import scipy.optimize as sopt
 #Lagrange Dual Function to be maximized w/r/t lambda_vars
 #Returns negative value because we want to maximize it using a minimization function
 
+Tr = np.trace
+inv = np.linalg.inv
+
 #WARNING: if solvr_obj = None, then X,S,c_const != None
 def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_const = None):
           
@@ -20,14 +23,19 @@ def lagrange_dual_func(lambda_vars, solvr_obj = None, X = None, S = None, c_cons
     
     Lambda = np.diag(lambda_vars)
     
-    trace_mat1 = X.T @ X
-    trace_mat2 = X @ S.T
-    trace_mat3 = np.linalg.inv(S @ S.T + Lambda)
-    trace_mat4 = (X @ S.T).T
-    trace_mat5 = c_const * Lambda
+    # trace_mat1 = X.T @ X
+    # trace_mat2 = X @ S.T
+    # trace_mat3 = np.linalg.inv(S @ S.T + Lambda)
+    # trace_mat4 = (X @ S.T).T
+    # trace_mat5 = c_const * Lambda
 
+    # return -1 * np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5)
 
-    return -1 * np.trace(trace_mat1) - np.trace(trace_mat2 @ trace_mat3 @ trace_mat4) - np.trace(trace_mat5)
+    return (
+        -1 * Tr(X.T @ X) 
+        - Tr((X @ S.T) @ (inv(S @ S.T + Lambda)) @ (X @ S.T).T) 
+        - Tr(c_const * Lambda)
+    )
     
 
 
@@ -51,10 +59,13 @@ def lagrange_dual_learn(solvr_obj = None, S = None, n = None, X = None, c_const 
     #Initial guess = x0. If none, set to zeros (optimal for near optimal bases)
     if x0 is None:
         x0 = np.zeros(n)
-    
 
     #Solve for optimal lambda
-    lambda_vars = sopt.minimize(lagrange_dual_func, x0, method = OptMethod, args = (solvr_obj, X, S, c_const))
+    lambda_vars = sopt.minimize(
+        lagrange_dual_func, x0, 
+        method = OptMethod, args = (solvr_obj, X, S, c_const)
+    )
+    
     #Set Lambda
     Lambda = np.diag(lambda_vars.x)
 

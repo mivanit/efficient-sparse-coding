@@ -52,6 +52,7 @@ def DUMMY_solver(solvr_obj, X, sigma, beta, c_const):
 	# TODO: S_guess according to the given distribution
 	S_guess = np.zeros((k * m))
 
+
 	return sopt.minimize(
 		fun = mini_me,
 		x0 = S_guess,
@@ -63,7 +64,8 @@ def DUMMY_solver(solvr_obj, X, sigma, beta, c_const):
 
 	
 
-def DUMMY_lagrange_dual(solvr_obj, X = None, c_const = None, method = None):
+def lagrange_dual_learn(solvr_obj, X = None, c_const = None, method = None):
+	'''DUMMY SOLVER'''
 	B_init = solvr_obj.B
 	S = solvr_obj.S
 	n = solvr_obj.n
@@ -93,7 +95,8 @@ def DUMMY_lagrange_dual(solvr_obj, X = None, c_const = None, method = None):
 
 
 
-def DUMMY_feature_sign(A, y, gamma, method = None):
+def feature_sign_search(A, y, gamma, method = None):
+	'''DUMMY SOLVER'''
 	dim_m, dim_p = A.shape
 	mini_me = lambda x : norm_2(y - A @ x)**2 + gamma * norm_1(x)
 	x0 = np.zeros(dim_p)

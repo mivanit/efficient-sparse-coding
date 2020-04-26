@@ -2,8 +2,10 @@ import numpy as np
 
 from util import *
 
-from feature_sign_search import feature_sign_search
-from lagrange_dual_learn import lagrange_dual_learn
+import feature_sign_search as fss
+import lagrange_dual_learn as ldl
+import dummy_solver as dum
+
 
 DEFAULT = {
 	'c_const'	: 1e-2,
@@ -14,7 +16,10 @@ DEFAULT = {
 
 class SparseCoder(object):
 
-	def __init__(self, n, k, X = None, c_const = None, sigma = None, beta = None):
+	def __init__(self,
+		n, k, X = None,
+		c_const = None, sigma = None, beta = None,
+	):
 		'''
 		n is dimension of basis,
 		k is data dimension
@@ -34,6 +39,7 @@ class SparseCoder(object):
 		# can also pass input data to ctor
 		if X is not None:
 			self.set_input(X, c_const, sigma, beta)
+
 
 	def print_cfg(self):
 		print('\tn    \t:\t%d' % self.n)
@@ -92,7 +98,9 @@ class SparseCoder(object):
 			+ 2 * (self.sigma**2.0) * self.beta * sum(map(phi, self.S)) 
 		)
 
-	def train(self, delta : float, verbose = False):
+	def train(self, delta : float, verbose = False,
+		max_iter = float('inf'), method = 'std',
+	):
 		r'''
 		X is input matrix, S is coefficient matrix,
 		self.B is the basis matrix
@@ -100,24 +108,44 @@ class SparseCoder(object):
 		X \in \R^{k \times m}
 		B \in \R^{k \times n}
 		S \in \R^{n \times m}
+
+		methods:
+			`std` 	  : standard, non-dummy solver
+			`ds_lag`  : langrange dual using dummy solver
+			`ds_feat` : feature sign search using dummy solver
+			`ds_comb` : both lagrange dual and feature sign using dummy solver
 		'''
 
+		# show settings
+		print('\tmax_iter\t:\t%f' % max_iter)
+		print('\tmethod  \t:\t%s' % method)
+
+		# select method
+		if method in ('ds_feat','ds_comb'):
+			feature_sign_search = dum.feature_sign_search
+		else:
+			feature_sign_search = fss.feature_sign_search
+		
+		if method in ('ds_lag','ds_comb'):
+			lagrange_dual_learn = dum.lagrange_dual_learn
+		else:
+			lagrange_dual_learn = ldl.lagrange_dual_learn
+
+		# inititalize values
 		val = float('inf')
 		val_new = self.value()
 		rem = float('inf')
-
-
-		self.val_data = []
-
+		self.val_data = [val_new]
 		iters = 0
 
+		# print verbose header
 		if verbose:
 			print('\t  {:10s}   {:3s}'.format('iter', 'rem'))
 			print('\t' + '-'*20)
 			print('\t{:5d}\t{:10f}'.format(iters, rem))
 
 		# iterate until within delta of 0
-		while not is_zero(rem, delta):
+		while (not is_zero(rem, delta)) or (iters < max_iter):
 
 			# lagrange step
 			self.B = lagrange_dual_learn(self)
@@ -136,7 +164,7 @@ class SparseCoder(object):
 				print('\t{:5d}\t{:10f}'.format(iters, rem))
 			iters += 1
 
-
+		# return results dict
 		return {
 			'X' : self.X,
 			'B' : self.B,
@@ -144,3 +172,5 @@ class SparseCoder(object):
 			'iters' : iters,
 			'val'	: self.val_data,
 		}
+
+

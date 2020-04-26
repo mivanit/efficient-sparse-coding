@@ -27,7 +27,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-from SparseCoder import *
+from SparseCoder import SparseCoder
 # from util import *
 
 #test comment yeet
@@ -59,10 +59,23 @@ def arg_val(key_set, argv = sys.argv, val = True):
 
 
 def arg_val_assign(key_set, var, argv = sys.argv):
+	'''
+	assigns the passed argument
+	only if the argument is present
+	'''
 	temp = arg_val(key_set, argv)
 	if temp is not None:
 		var = temp
 
+def dict_assign(in_dict, key, default = None):
+	'''
+	returns the actual value at the key,
+	regardless of whether the key was present originally
+	still allows for default value
+	'''
+	if key not in in_dict:
+		in_dict[key] = default
+	return in_dict[key]
 
 
 def load_setttings(file_set):
@@ -98,21 +111,25 @@ def argParser(argv = sys.argv):
 	# read (overwriting if present) settings from command line args
 
 	# solver vars
-	arg_val_assign(['-n'], settings.get('n'), argv)
-	arg_val_assign(['-s', '--sigma'],  settings.get('sigma'), argv)
-	arg_val_assign(['-b', '--beta'],  settings.get('beta'), argv)
-	arg_val_assign(['-c', '--c_const'],  settings.get('c_const'), argv)
-	arg_val_assign(['-d', '--delta'],  settings.get('delta'), argv)
+	arg_val_assign(['-n'], dict_assign(settings, 'n'), argv)
+	arg_val_assign(['-s', '--sigma'],  dict_assign(settings, 'sigma'), argv)
+	arg_val_assign(['-b', '--beta'],  dict_assign(settings, 'beta'), argv)
+	arg_val_assign(['-c', '--c_const'],  dict_assign(settings, 'c_const'), argv)
+	arg_val_assign(['-d', '--delta'],  dict_assign(settings, 'delta'), argv)
+
+	# optional vars
+	arg_val_assign(['-i', '--iterations'],  dict_assign(settings, 'iterations', float('inf')), argv)
+	arg_val_assign(['--method'],  dict_assign(settings, 'method', 'std'), argv)
 	
 	# file paths
-	arg_val_assign(['--file_X'],  settings.get('file_X'), argv)
-	arg_val_assign(['--file_B'],  settings.get('file_B'), argv)
-	arg_val_assign(['--file_S'],  settings.get('file_S'), argv)
+	arg_val_assign(['--file_X'],  dict_assign(settings, 'file_X'), argv)
+	arg_val_assign(['--file_B'],  dict_assign(settings, 'file_B'), argv)
+	arg_val_assign(['--file_S'],  dict_assign(settings, 'file_S'), argv)
 
 
 	# test for required settings present
 	if any([
-		settings.get(s, None) is None
+		dict_assign(settings, s, None) is None
 		for s in 'n,sigma,beta,c_const,delta,file_X'.split(',')
 	]):
 		print(__doc__)
@@ -125,9 +142,13 @@ def argParser(argv = sys.argv):
 
 	settings['n'] = int(settings['n'])
 
+	# float to allow for inf
+	settings['iterations'] = float(settings['iterations'])
+
 	# output files
+	# TODO: make this more flexible?
 	for s in ['file_B', 'file_S', 'out_fmt']:
-		if settings.get(s, None) is None:
+		if dict_assign(settings, s, None) is None:
 			settings[s] = None
 			
 	return settings
@@ -233,10 +254,20 @@ def main(argv = sys.argv):
 	print('-'*60)
 
 	print('> setting up solver')
-	coder = SparseCoder(cfg['n'], cfg['k'], arr_X, cfg['c_const'], cfg['sigma'], cfg['beta'])
+	coder = SparseCoder(
+		n = cfg['n'],
+		k = cfg['k'],
+		X = arr_X,
+		c_const = cfg['c_const'],
+		sigma = cfg['sigma'],
+		beta = cfg['beta']
+	)
 
 	print('> solving')
-	res = coder.train(cfg['delta'], True)
+	res = coder.train(
+		cfg['delta'], 
+		verbose = True, max_iter = cfg['iterations'], method = cfg['method'],
+	)
 
 	print('> done! iterations: \t%d' % res['iters'])
 
@@ -244,6 +275,8 @@ def main(argv = sys.argv):
 	save_results( (res['B'], res['S']), cfg )
 
 	plt.plot(res['val'])
+	plt.xlabel('iteration number')
+	plt.ylabel('objective function')
 	plt.show()
 
 

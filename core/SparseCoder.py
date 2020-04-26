@@ -88,7 +88,6 @@ class SparseCoder(object):
 		self.print_cfg()		
 
 	def value(self):
-		print('-'*50)
 		# print(self.X.shape)
 		# print(self.B.shape)
 		# print(self.S.shape)
@@ -119,6 +118,7 @@ class SparseCoder(object):
 		# show settings
 		print('\tmax_iter\t:\t%f' % max_iter)
 		print('\tmethod  \t:\t%s' % method)
+		print('\tdelta   \t:\t%s' % delta)
 
 		# select method
 		if method in ('ds_feat','ds_comb'):
@@ -132,36 +132,63 @@ class SparseCoder(object):
 			lagrange_dual_learn = ldl.lagrange_dual_learn
 
 		# inititalize values
-		val = float('inf')
-		val_new = self.value()
-		rem = float('inf')
-		self.val_data = [val_new]
+		val = [float('inf') for i in range(4)]
+		self.val_data = [val]
 		iters = 0
 
 		# print verbose header
+		print('='*70)
 		if verbose:
-			print('\t  {:10s}   {:3s}'.format('iter', 'rem'))
-			print('\t' + '-'*20)
-			print('\t{:5d}\t{:10f}'.format(iters, rem))
+			print('%15s %15s %15s %15s %15s' % ('iter','val','val_lag','val_new','rem'))
+			print('\t' + '-'*70)
+			print('%15s %15f %15f %15f %15f' % (iters, *val))
+
+
+		Lambda = np.zeros(self.n)
 
 		# iterate until within delta of 0
-		while (not is_zero(rem, delta)) or (iters < max_iter):
+		while (not is_zero(val[3], delta)) and (iters < max_iter):
+
+			temp_prev_val = val[2]
+			if iters > 3:
+				rand_mod = delta * val[3]
+			else:
+				rand_mod = delta
+			val = [None for i in range(4)]
+			val[0] = temp_prev_val
+
+			# val[0] : old value
+			# val[1] : first step (lagrange)
+			# val[2] : new value (both steps)
+			# val[3] : remainder (new - old)
 
 			# lagrange step
-			self.B = lagrange_dual_learn(self)
+			self.B, Lambda = lagrange_dual_learn(
+				X = self.X,
+				S = self.S,
+				n = self.n,
+				# L_init = Lambda, # TODO: does this help or no?
+				c_const = self.c_const,
+			)
+
+			val[1] = self.value()
 
 			# feature sign step
 			for i in range(self.m):
-				self.S[:,i] = feature_sign_search(self.B, self.X[:,i], self.gamma)
+				self.S[:,i] = feature_sign_search(
+					self.B, 
+					self.X[:,i], 
+					self.gamma, 
+					x0 = vec_randomize(self.S[:,i], rand_mod), # TODO: does this help or no?
+				)
 
-			val = val_new
-			val_new = self.value()
-			rem = val - val_new
+			val[2] = self.value()
+			val[3] = val[2] - val[0]
 
-			self.val_data.append(val_new)
+			self.val_data.append(val.copy())
 
 			if verbose:
-				print('\t{:5d}\t{:10f}'.format(iters, rem))
+				print('%15s %15f %15f %15f %15f' % (iters, *val))
 			iters += 1
 
 		# return results dict
@@ -170,7 +197,7 @@ class SparseCoder(object):
 			'B' : self.B,
 			'S' : self.S,
 			'iters' : iters,
-			'val'	: self.val_data,
+			'val'	: np.array(self.val_data),
 		}
 
 

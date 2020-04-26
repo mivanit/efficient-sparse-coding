@@ -64,7 +64,7 @@ def DUMMY_solver(solvr_obj, X, sigma, beta, c_const):
 
 	
 
-def lagrange_dual_learn(X, S, n, c_const, B_init = None, method = 'CG'):
+def lagrange_dual_learn(X, S, n, c_const, L_init = None, method = None):
 	'''DUMMY SOLVER'''
 	mini_me = lambda B : norm_F(X - B @ S)**2
 
@@ -73,7 +73,7 @@ def lagrange_dual_learn(X, S, n, c_const, B_init = None, method = 'CG'):
 
 	res = sopt.minimize(
 		fun = mini_me,
-		x0 = B_init,
+		x0 = None,
 		constraints = [ 
 			{'type' : 'ineq', 'fun' : constraint_factory(j) } 
 			for j in range(n)
@@ -81,15 +81,17 @@ def lagrange_dual_learn(X, S, n, c_const, B_init = None, method = 'CG'):
 		method = method,
 	)
 
-	return res.x
+	return (res.x, None)
 
 
 
-def feature_sign_search(A, y, gamma, method = None):
+def feature_sign_search(A, y, gamma, method = None, x0 = None):
 	'''DUMMY SOLVER'''
 	dim_m, dim_p = A.shape
 	mini_me = lambda x : norm_2(y - A @ x)**2 + gamma * norm_1(x)
-	x0 = np.zeros(dim_p)
+	
+	if x0 is None:
+		x0 = np.zeros(dim_p)
 	
 	res = sopt.minimize(
 		fun = mini_me,

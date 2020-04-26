@@ -24,16 +24,16 @@ def lagrange_dual_factory(X, S, c_const):
     
 
 
-def lagrange_dual_learn(X, S, n, c_const, B_init = None, method = 'CG'):
+def lagrange_dual_learn(X, S, n, c_const, L_init = None, method = 'CG'):
 
     # Initial guess = x0. If none, set to zeros (optimal for near optimal bases)
-    if B_init is None:
-        B_init = np.zeros(n)
+    if L_init is None:
+        L_init = np.zeros(n)
 
     # Solve for optimal lambda
     lambda_vars = sopt.minimize(
         lagrange_dual_factory(X,S,c_const),
-        B_init, 
+        L_init, 
         method = method,
     )
 
@@ -43,7 +43,7 @@ def lagrange_dual_learn(X, S, n, c_const, B_init = None, method = 'CG'):
     # Returns B^T, for B corresponding to basis matrix
     B = (np.linalg.inv(S @ S.T + Lambda) @ (X @ S.T).T).T
 
-    return B
+    return (B, lambda_vars.x)
     
 
 

@@ -119,3 +119,11 @@ def inv(arr):
 		return np.array([[ 1/arr[0][0] ]])
 	else:
 		return np.linalg.inv(arr)
+
+
+def vec_randomize(v, s):
+	'''
+	modifies each element of the vector v[i] by some coefficient q[i]
+	where q[i] ~ Normal(1, s)
+	'''
+	return v * np.random.normal(1.0, abs(s), v.shape)

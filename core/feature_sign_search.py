@@ -12,7 +12,7 @@ import numpy as np
 
 from util import *
 
-def feature_sign_search(A, y, gamma):
+def feature_sign_search(A, y, gamma, x0 = None):
 	r'''
 	inputs: 
 		- matrix A \in \R^{m * p}
@@ -35,7 +35,10 @@ def feature_sign_search(A, y, gamma):
 	dim_m, dim_p = A.shape
 
 	# y = y.reshape(*y.shape, 1)
-	x = np.zeros(dim_p)
+	if x0 is None:
+		x = np.zeros(dim_p)
+	else:
+		x = x0
 
 	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
 	## theta = np.array( x_i / abs(x_i) for x_i in x )
@@ -173,10 +176,10 @@ def feature_sign_search(A, y, gamma):
 				if not is_zero( x[j] )
 			}
 
-			print('-'*50)
-			for j in set_j_not0:
-				# print('\t' + str(deriv_yAx(j)))
-				print('\t' + str(deriv_yAx(j) + gamma * sign(x[j])))
+			# print('-'*50)
+			# for j in set_j_not0:
+			# 	# print('\t' + str(deriv_yAx(j)))
+			# 	print('\t' + str(deriv_yAx(j) + gamma * sign(x[j])))
 
 			opmCond_a = all( 
 				is_zero( deriv_yAx(j) + gamma * sign(x[j]) )
@@ -192,9 +195,9 @@ def feature_sign_search(A, y, gamma):
 		}
 		# REVIEW: is strict equality ok here?
 
-		print('*'*50)
-		for j in set_j_is0:
-			print('\t' + str(deriv_yAx(j)))
+		# print('*'*50)
+		# for j in set_j_is0:
+		# 	print('\t' + str(deriv_yAx(j)))
 
 		opmCond_b = all( 
 			abs(deriv_yAx(j)) <= gamma

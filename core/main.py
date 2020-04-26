@@ -58,25 +58,24 @@ def arg_val(key_set, argv = sys.argv, val = True):
 	return None
 
 
-def arg_val_assign(key_set, var, argv = sys.argv):
+def arg_val_assign(key_set, dict_tup, argv = sys.argv):
 	'''
-	assigns the passed argument
+	assigns the argument value to dict_tup[0][ dict_tup[1] ]
 	only if the argument is present
 	'''
+	mydict = dict_tup[0]
+	key = dict_tup[1]
+	if len(dict_tup) > 2:
+		default = dict_tup[2]
+	else:
+		default = None
+
 	temp = arg_val(key_set, argv)
 	if temp is not None:
-		var = temp
-
-def dict_assign(in_dict, key, default = None):
-	'''
-	returns the actual value at the key,
-	regardless of whether the key was present originally
-	still allows for default value
-	'''
-	if key not in in_dict:
-		in_dict[key] = default
-	return in_dict[key]
-
+		mydict[key] = temp
+	else:
+		if mydict.get(key, None) is None:
+			mydict[key] = default
 
 def load_setttings(file_set):
 	'''
@@ -111,25 +110,25 @@ def argParser(argv = sys.argv):
 	# read (overwriting if present) settings from command line args
 
 	# solver vars
-	arg_val_assign(['-n'], dict_assign(settings, 'n'), argv)
-	arg_val_assign(['-s', '--sigma'],  dict_assign(settings, 'sigma'), argv)
-	arg_val_assign(['-b', '--beta'],  dict_assign(settings, 'beta'), argv)
-	arg_val_assign(['-c', '--c_const'],  dict_assign(settings, 'c_const'), argv)
-	arg_val_assign(['-d', '--delta'],  dict_assign(settings, 'delta'), argv)
+	arg_val_assign(['-n'], 				(settings, 'n'), argv)
+	arg_val_assign(['-s', '--sigma'], 	(settings, 'sigma'), argv)
+	arg_val_assign(['-b', '--beta'], 	(settings, 'beta'), argv)
+	arg_val_assign(['-c', '--c_const'], (settings, 'c_const'), argv)
+	arg_val_assign(['-d', '--delta'], 	(settings, 'delta'), argv)
 
 	# optional vars
-	arg_val_assign(['-i', '--iterations'],  dict_assign(settings, 'iterations', float('inf')), argv)
-	arg_val_assign(['--method'],  dict_assign(settings, 'method', 'std'), argv)
+	arg_val_assign(['-i', '--iterations'], (settings, 'iterations', float('inf')), argv)
+	arg_val_assign(['--method'], (settings, 'method', 'std'), argv)
 	
 	# file paths
-	arg_val_assign(['--file_X'],  dict_assign(settings, 'file_X'), argv)
-	arg_val_assign(['--file_B'],  dict_assign(settings, 'file_B'), argv)
-	arg_val_assign(['--file_S'],  dict_assign(settings, 'file_S'), argv)
+	arg_val_assign(['--file_X'], (settings, 'file_X'), argv)
+	arg_val_assign(['--file_B'], (settings, 'file_B'), argv)
+	arg_val_assign(['--file_S'], (settings, 'file_S'), argv)
 
 
 	# test for required settings present
 	if any([
-		dict_assign(settings, s, None) is None
+		settings.get(s, None) is None
 		for s in 'n,sigma,beta,c_const,delta,file_X'.split(',')
 	]):
 		print(__doc__)
@@ -148,7 +147,7 @@ def argParser(argv = sys.argv):
 	# output files
 	# TODO: make this more flexible?
 	for s in ['file_B', 'file_S', 'out_fmt']:
-		if dict_assign(settings, s, None) is None:
+		if settings.get(s, None) is None:
 			settings[s] = None
 			
 	return settings
@@ -274,7 +273,7 @@ def main(argv = sys.argv):
 	print('> saving results')
 	save_results( (res['B'], res['S']), cfg )
 
-	plt.plot(res['val'])
+	plt.plot(res['val'][:,0])
 	plt.xlabel('iteration number')
 	plt.ylabel('objective function')
 	plt.show()

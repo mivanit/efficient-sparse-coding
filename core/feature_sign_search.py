@@ -166,48 +166,48 @@ def feature_sign_search(A, y, gamma, x0 = None):
 			for i in range(dim_p)
 		])
 
-		looking_i = True
-		num_tested_i = 0
+		# acivate x_i if it locally improves objective			
+		i_sel = np.argmax(np.absolute(selector_arr))
+		
+		'''
+			# def temp_func(temp_xi):
+			# 	x_cpy = x.copy()
+			# 	x_cpy[i_sel] = temp_xi
+			# 	return norm_2(
+			# 		np.reshape(y, (-1,1)) 
+			# 		- A @ x_cpy )**2.0
 
-		while looking_i:
+			# print( '\t%f\t%f' % (
+			# 	deriv_yAx(i_sel, x[i_sel]),
+			# 	numerical_derivative(temp_func, x[i_sel], deriv_yAx(i_sel), True)
+			# ))
+			# i_deriv = numerical_derivative(temp_func, x[i_sel])
+		'''
+		
+		i_deriv = deriv_yAx(i_sel)
+		
+		print('SELECTING:\t%d\t%f' % (i_sel, i_deriv))
 
-			i_sel = np.argmax(np.absolute(selector_arr))
+		if abs(i_deriv) > gamma:
+			theta[i_sel] = (-1) * sign(i_deriv)
+			active_set.add(i_sel)
+			looking_i = False
 
-			
-
-			# acivate x_i if it locally improves objective			
-			
 			'''
-				# def temp_func(temp_xi):
-				# 	x_cpy = x.copy()
-				# 	x_cpy[i_sel] = temp_xi
-				# 	return norm_2(
-				# 		np.reshape(y, (-1,1)) 
-				# 		- A @ x_cpy )**2.0
+				# looking_i = True
+				# while looking_i:
+				# num_tested_i = 0
 
-				# print( '\t%f\t%f' % (
-				# 	deriv_yAx(i_sel, x[i_sel]),
-				# 	numerical_derivative(temp_func, x[i_sel], deriv_yAx(i_sel), True)
-				# ))
-				# i_deriv = numerical_derivative(temp_func, x[i_sel])
+
+					# else:
+					# 	selector_arr[i_sel] = np.float('-inf')
+					# 	num_tested_i += 1
+					# 	if num_tested_i >= dim_p:
+					# 		# REVIEW: if we pick an `i` that does not improve objective, try the next best `i`?
+					# 		print('no valid index in x_hat found, selecting at random')
+					# 		theta[i_sel] = (-1) * sign(i_deriv)
+					# 		active_set.add(i_sel)
 			'''
-			
-			i_deriv = deriv_yAx(i_sel)
-			
-			print('SELECTING:\t%d\t%f' % (i_sel, i_deriv))
-
-			if abs(i_deriv) > gamma:
-				theta[i_sel] = (-1) * sign(i_deriv)
-				active_set.add(i_sel)
-				looking_i = False
-			else:
-				selector_arr[i_sel] = np.float('-inf')
-				num_tested_i += 1
-				if num_tested_i >= dim_p:
-					# REVIEW: if we pick an `i` that does not improve objective, try the next best `i`?
-					print('no valid index in x_hat found, selecting at random')
-					theta[i_sel] = (-1) * sign(i_deriv)
-					active_set.add(i_sel)
 
 		active_list = sorted(list(active_set))
 	

@@ -171,6 +171,9 @@ class SparseCoder(object):
 				c_const = self.c_const,
 			)
 
+			if self.B.shape != (self.k, self.n):
+				self.B = self.B.reshape((self.k, self.n))
+
 			val[1] = self.value()
 
 			# feature sign step

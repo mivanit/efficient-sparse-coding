@@ -10,13 +10,17 @@ phi = lambda x : norm_1(x)
 
 
 # float comparison threshold
-THRESH = 1e-5
+THRESH = 1e-10
 
 def is_zero(x, thresh = THRESH):
 	return abs(x) < thresh
 
 # sign function
-sign = lambda x : int(x / abs(x)) if not is_zero(x) else 0
+sign = np.sign
+
+# sign = lambda x : int(x / abs(x)) if not is_zero(x) else 0
+# def sign_v(vec):
+# 	return np.array([ sign(v) for v in vec ])
 
 
 

@@ -124,6 +124,7 @@ def argParser(argv = sys.argv):
 	arg_val_assign(['--file_X'], (settings, 'file_X'), argv)
 	arg_val_assign(['--file_B'], (settings, 'file_B'), argv)
 	arg_val_assign(['--file_S'], (settings, 'file_S'), argv)
+	arg_val_assign(['--file_V'], (settings, 'file_V'), argv)
 
 
 	# test for required settings present
@@ -146,7 +147,7 @@ def argParser(argv = sys.argv):
 
 	# output files
 	# TODO: make this more flexible?
-	for s in ['file_B', 'file_S', 'out_fmt']:
+	for s in ['file_B', 'file_S', 'file_V', 'out_fmt']:
 		if settings.get(s, None) is None:
 			settings[s] = None
 			
@@ -194,7 +195,7 @@ def load_X(file_in):
 
 
 def save_results(results, settings):
-	res_B, res_S = results
+	res_B, res_S, values = results
 
 	idx_temp = settings['file_X'].rfind('.')
 	file_in_name = settings['file_X'][:idx_temp]
@@ -209,8 +210,12 @@ def save_results(results, settings):
 	if settings['file_S'] is None:
 		settings['file_S'] = file_in_name + '_S' + '.' + settings['out_fmt']
 
+	if settings['file_V'] is None:
+		settings['file_V'] = file_in_name + '_V' + '.' + settings['out_fmt']
+
 	save_arr(res_B, settings['file_B'], settings['out_fmt'])
 	save_arr(res_S, settings['file_S'], settings['out_fmt'])
+	save_arr(values, settings['file_V'], settings['out_fmt'])
 
 
 def save_arr(arr, name, fmt):
@@ -271,7 +276,7 @@ def main(argv = sys.argv):
 	print('> done! iterations: \t%d' % res['iters'])
 
 	print('> saving results')
-	save_results( (res['B'], res['S']), cfg )
+	save_results( (res['B'], res['S'], res['val']), cfg )
 
 	plt.plot(res['val'][:,0])
 	plt.xlabel('iteration number')

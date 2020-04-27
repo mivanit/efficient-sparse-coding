@@ -66,14 +66,25 @@ def DUMMY_solver(solvr_obj, X, sigma, beta, c_const):
 
 def lagrange_dual_learn(X, S, n, c_const, L_init = None, method = None):
 	'''DUMMY SOLVER'''
-	mini_me = lambda B : norm_F(X - B @ S)**2
+	k = X.shape[0]
+
+	def mini_me(B):
+		# mini_me = lambda B : norm_F(X - B @ S)**2
+		B = B.reshape((k, n))
+		# print( '\t%s\t%s\t%s' % (str(X.shape), str(S.shape), str(B.shape)))
+		return norm_F(X - B @ S)**2
+
 
 	def constraint_factory(j):
-		return lambda B : c_const - sum([ elt**2 for elt in B[:,j] ])
+		# lambda B : c_const - sum([ elt**2 for elt in B[:,j] ])
+		def func(B):
+			B = B.reshape((k, n))
+			return c_const - np.sum(B[:,j] * B[:,j])
+		return func
 
 	res = sopt.minimize(
 		fun = mini_me,
-		x0 = None,
+		x0 = np.zeros((X.shape[0], n)),
 		constraints = [ 
 			{'type' : 'ineq', 'fun' : constraint_factory(j) } 
 			for j in range(n)

@@ -39,6 +39,13 @@ $$
 	= \argmax_i \left\vert \sum\limits_{j \in \N_m} A_{j,i} \right\vert
 $$
 
+We can also write
+$$
+	\frac{\partial \Vert y - Ax \Vert^2 }{ \partial x_i }
+	 = -2 ( A^T y - A^T A x )
+	  = -2 A^T ( y - A x )
+$$
+
 
 
 ## general norm case:

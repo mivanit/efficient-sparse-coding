@@ -135,27 +135,29 @@ def vec_randomize(v, s):
 MACHINE_EPSILON = 2.22e-16
 ROOT_MACHINE_EPSILON = 1.48997-8
 
-def numerical_derivative(f, x, comp = None):
+def numerical_derivative(f, x, comp = None, verb = False):
 	'''
 	uses symmetric difference quotient
 	'''
 	h = max(
 		ROOT_MACHINE_EPSILON * x, 
-		ROOT_MACHINE_EPSILON
+		MACHINE_EPSILON
 	)
-	print('\t%f\t%f\t%f\t%f' % (h, f(x-h), f(x), f(x+h)))
 
-	import matplotlib.pyplot as plt
-	h = h*0.1
-	x_arr = [ (x + a*h*0.05) for a in range(-1000,1000)]
-	f_arr = [ f(x_) for x_ in x_arr ]
-	plt.plot(x, f(x), 'ro')
-	plt.plot(x+h, f(x+h), 'go')
-	plt.plot(x-h, f(x-h), 'go')
-	plt.plot(x_arr, f_arr,'b.-')
-	if comp is not None:
-		plt.plot([x-h, x+h], [f(x)-comp*h,f(x)+comp*h],'k-')
-	plt.show()
+	if verb:
+		print('\t%f\t%f\t%f\t%f' % (h, f(x-h), f(x), f(x+h)))
 
+		import matplotlib.pyplot as plt
+		h = h*0.1
+		x_arr = [ (x + a*h*0.05) for a in range(-1000,1000)]
+		f_arr = [ f(x_) for x_ in x_arr ]
+		plt.plot(x, f(x), 'ro')
+		plt.plot(x+h, f(x+h), 'go')
+		plt.plot(x-h, f(x-h), 'go')
+		plt.plot(x_arr, f_arr,'b.-')
+		if comp is not None:
+			plt.plot([x-h, x+h], [f(x)-comp*h,f(x)+comp*h],'k-')
+		plt.show()
 
 	return ( f(x+h) - f(x-h) ) / (2 * h)
+

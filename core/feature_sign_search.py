@@ -45,7 +45,8 @@ def feature_sign_search(A, y, gamma, x0 = None):
 	# theta = np.array(list(map(sign, x)))
 	theta = np.zeros((dim_p,1))
 	active_set = set()
-	opmCond_a, opmCond_b = False, False
+
+
 
 	# * 1.B: helpers
 	def FS_unconstrained_QP_factory(M_hat, sgn_vec):
@@ -53,8 +54,10 @@ def feature_sign_search(A, y, gamma, x0 = None):
 		objective for feature-sign step
 		used only during line search from x_hat to x_hat_new
 		'''
-		return lambda x_vec : norm_1(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
-		# return lambda x_vec : norm_2(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
+		return lambda x_vec : norm_2(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
+
+
+
 
 	def deriv_yAx(i, x_i = None):
 		r'''
@@ -65,6 +68,7 @@ def feature_sign_search(A, y, gamma, x0 = None):
 			-2 * \sum_{j \in \N_m} 
 			[ y_j - \sum_{k \in \N_p} A_{j,k} x_k ] 
 			* [ A_{j,i} ]
+			 = -2 A^T ( y - A x )
 		see paper_notes.md
 		'''
 		if x_i is not None:
@@ -74,15 +78,14 @@ def feature_sign_search(A, y, gamma, x0 = None):
 			x_cpy = x
 
 
-		# for 1-norm
-		# return sum(
-		# 	A[j,i]
-		# 	for j in range(dim_m)
-		# )**2.0
+		# matrix calculus formulation
+		return -2 * A[:,i].T @ (
+			np.reshape(y, (-1,1)) # reshapes y so can subtract Ax properly
+			- A @ x_cpy
+		)
 
-		return np.power(np.sum(A[:,i]),2)
-
-		# for 2-norm
+		# using list comprehensions
+		
 		# return (-2) * sum(
 		# 	A[j,i] * ( y[j] - sum(
 		# 		A[j,k] * x_cpy[k]
@@ -92,12 +95,68 @@ def feature_sign_search(A, y, gamma, x0 = None):
 		# )
 
 	
-	while not opmCond_b:
 
-		opmCond_a = False
+	def opCond_a():
+		# * 4: check optimality condition a
+		# set of j where x_j != 0
+
+		print(x.T)
+		set_j_not0 = {
+			j for j in range(dim_p)
+			if not is_zero( x[j] )
+		}
+
+		print('-'*50)
+		for j in set_j_not0:
+			# print('\t' + str(deriv_yAx(j)))
+			print('\t' + str(deriv_yAx(j) + gamma * sign(x[j])))
+
+		print('\tA:\t%s' % str(set_j_not0))
+
+		return all( 
+			is_zero( deriv_yAx(j) + gamma * sign(x[j]) )
+			for j in set_j_not0
+		)
+
+
+	def opCond_b():
+		# * 4: check optimality condition b
+		# set of j where x_j == 0
+		
+		print(x.T)
+		set_j_is0 = {
+			j for j in range(dim_p)
+			if is_zero(x[j])
+		}
+		# REVIEW: is strict equality ok here?
+
+		print('\tB:\t%s' % str(set_j_is0))
+
+		print('*'*50)
+		for j in set_j_is0:
+			print('\t' + str(deriv_yAx(j)))
+
+		return all( 
+			abs(deriv_yAx(j)) <= gamma
+			for j in set_j_is0
+		)
+
+
+
+
+
+
+
+
+	while not opCond_b():
 
 		# * 2: from zero coefficients of x, select i such that
 		# 		y - A x is changing most rapidly with respect to x_i
+		
+		# selector_arr = np.array([
+		# 	numerical_derivative(temp_func, x[i])
+		# ])
+		
 		selector_arr = np.array([
 			(
 				sum(A[:,i])
@@ -114,22 +173,28 @@ def feature_sign_search(A, y, gamma, x0 = None):
 
 			i_sel = np.argmax(np.absolute(selector_arr))
 
+			
+
 			# acivate x_i if it locally improves objective			
 			
+			'''
+				# def temp_func(temp_xi):
+				# 	x_cpy = x.copy()
+				# 	x_cpy[i_sel] = temp_xi
+				# 	return norm_2(
+				# 		np.reshape(y, (-1,1)) 
+				# 		- A @ x_cpy )**2.0
 
-			def temp_func(temp_xi):
-				x_cpy = x.copy()
-				x_cpy[i_sel] = temp_xi
-				return np.power(norm_1(y - A @ x_cpy ))
-				# return norm_2(y - A @ x_cpy )**2.0
-
-			print( '\t%f\t%f' % (
-				deriv_yAx(i_sel),
-				numerical_derivative(temp_func, x[i_sel], deriv_yAx(i_sel))
-			))
-
+				# print( '\t%f\t%f' % (
+				# 	deriv_yAx(i_sel, x[i_sel]),
+				# 	numerical_derivative(temp_func, x[i_sel], deriv_yAx(i_sel), True)
+				# ))
+				# i_deriv = numerical_derivative(temp_func, x[i_sel])
+			'''
+			
 			i_deriv = deriv_yAx(i_sel)
 			
+			print('SELECTING:\t%d\t%f' % (i_sel, i_deriv))
 
 			if abs(i_deriv) > gamma:
 				theta[i_sel] = (-1) * sign(i_deriv)
@@ -146,7 +211,7 @@ def feature_sign_search(A, y, gamma, x0 = None):
 
 		active_list = sorted(list(active_set))
 	
-		while not opmCond_a:
+		while not opCond_a():
 
 			# * 3: feature-sign step
 
@@ -196,42 +261,6 @@ def feature_sign_search(A, y, gamma, x0 = None):
 					A_hat, x_hat, theta_hat, x_hat_new = (None for _ in range(4))
 			
 			theta = np.array(list(map(sign, x)))
-
-			# * 4: check optimality condition a
-			
-			# set of j where x_j != 0
-			set_j_not0 = {
-				j for j in range(dim_p)
-				if not is_zero( x[j] )
-			}
-
-			# print('-'*50)
-			# for j in set_j_not0:
-			# 	# print('\t' + str(deriv_yAx(j)))
-			# 	print('\t' + str(deriv_yAx(j) + gamma * sign(x[j])))
-
-			opmCond_a = all( 
-				is_zero( deriv_yAx(j) + gamma * sign(x[j]) )
-				for j in set_j_not0
-			)
-
-
-		# * 4: check optimality condition b
-		# set of j where x_j == 0
-		set_j_is0 = {
-			j for j in range(dim_p)
-			if x[j] == 0
-		}
-		# REVIEW: is strict equality ok here?
-
-		# print('*'*50)
-		# for j in set_j_is0:
-		# 	print('\t' + str(deriv_yAx(j)))
-
-		opmCond_b = all( 
-			abs(deriv_yAx(j)) <= gamma
-			for j in set_j_is0
-		)
 
 	return x
 

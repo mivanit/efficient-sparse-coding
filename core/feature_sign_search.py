@@ -35,14 +35,15 @@ def feature_sign_search(A, y, gamma, x0 = None):
 	dim_m, dim_p = A.shape
 
 	# y = y.reshape(*y.shape, 1)
-	if x0 is None:
-		x = np.zeros(dim_p)
-	else:
-		x = x0
+
+	x = np.zeros((dim_p,1))
+	# if x0 is not None:
+	# 	x = x0
 
 	## theta = lambda i: (x[i] > 0) - (x[i] < 0)
 	## theta = np.array( x_i / abs(x_i) for x_i in x )
-	theta = np.array(list(map(sign, x)))
+	# theta = np.array(list(map(sign, x)))
+	theta = np.zeros((dim_p,1))
 	active_set = set()
 	opmCond_a, opmCond_b = False, False
 
@@ -52,30 +53,43 @@ def feature_sign_search(A, y, gamma, x0 = None):
 		objective for feature-sign step
 		used only during line search from x_hat to x_hat_new
 		'''
-		return lambda x_vec : norm_2(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
+		return lambda x_vec : norm_1(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
+		# return lambda x_vec : norm_2(y - M_hat @ x_vec)**2 + gamma * sgn_vec.T @ x_vec
 
-	def deriv_yAx(i, x_i = 0.0):
+	def deriv_yAx(i, x_i = None):
 		r'''
 		returns the derivative
 			\frac{\partial || y - Ax ||^2 }{ \partial x_i }
 		at x_i = 0 by default
-		note this is equalt to
+		note this is equal to
 			-2 * \sum_{j \in \N_m} 
 			[ y_j - \sum_{k \in \N_p} A_{j,k} x_k ] 
 			* [ A_{j,i} ]
 		see paper_notes.md
 		'''
-		x_cpy = x
-		# x_cpy = np.copy(x)
-		# x_cpy[i] = x_i
+		if x_i is not None:
+			x_cpy = np.copy(x)
+			x_cpy[i] = x_i
+		else:
+			x_cpy = x
 
-		return (-2) * sum(
-			A[j,i] * ( y[j] - sum(
-				A[j,k] * x_cpy[k]
-				for k in range(dim_p)
-			) )
-			for j in range(dim_m)
-		)
+
+		# for 1-norm
+		# return sum(
+		# 	A[j,i]
+		# 	for j in range(dim_m)
+		# )**2.0
+
+		return np.power(np.sum(A[:,i]),2)
+
+		# for 2-norm
+		# return (-2) * sum(
+		# 	A[j,i] * ( y[j] - sum(
+		# 		A[j,k] * x_cpy[k]
+		# 		for k in range(dim_p)
+		# 	) )
+		# 	for j in range(dim_m)
+		# )
 
 	
 	while not opmCond_b:
@@ -100,8 +114,23 @@ def feature_sign_search(A, y, gamma, x0 = None):
 
 			i_sel = np.argmax(np.absolute(selector_arr))
 
-			# acivate x_i if it locally improves objective
+			# acivate x_i if it locally improves objective			
+			
+
+			def temp_func(temp_xi):
+				x_cpy = x.copy()
+				x_cpy[i_sel] = temp_xi
+				return np.power(norm_1(y - A @ x_cpy ))
+				# return norm_2(y - A @ x_cpy )**2.0
+
+			print( '\t%f\t%f' % (
+				deriv_yAx(i_sel),
+				numerical_derivative(temp_func, x[i_sel], deriv_yAx(i_sel))
+			))
+
 			i_deriv = deriv_yAx(i_sel)
+			
+
 			if abs(i_deriv) > gamma:
 				theta[i_sel] = (-1) * sign(i_deriv)
 				active_set.add(i_sel)

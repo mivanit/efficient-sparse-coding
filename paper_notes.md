@@ -40,3 +40,64 @@ $$
 $$
 
 
+
+## general norm case:
+so, $y - Ax$ is linear wrt $x_i$, so (assuming $L_b$ norm):
+$$ 
+	\frac{\partial \Vert y - Ax \Vert_b^2 }{ \partial x_i }
+	= \frac{\partial}{ \partial x_i }
+	\Bigg( 
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]^b 
+	\Bigg)^{2/b}
+$$
+$$
+	= (2/b)
+	\Bigg(
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]^b 
+	\Bigg)^{(2-b)/b}
+	\Bigg(
+		\frac{\partial}{ \partial x_i }
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]^b 
+	\Bigg)
+$$ 
+$$
+	= (2/b)
+	\Bigg(
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]^b 
+	\Bigg)^{(2-b)/b}
+	\Bigg(
+		b
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]^{b-1} 
+	\Bigg)
+	\Bigg(
+		\frac{\partial}{ \partial x_i }
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]
+	\Bigg)
+$$ 
+$$
+	= 2
+	\Bigg(
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]^b 
+	\Bigg)^{(2-b)/b}
+	\Bigg(
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]^{b-1} 
+	\Bigg)
+	\Big(
+		- A_{j,i}
+	\Big)
+$$ 
+
+## lets try L1 norm:
+$$ 
+	\frac{\partial \Vert y - Ax \Vert_1^2 }{ \partial x_i }
+	= \frac{\partial}{ \partial x_i }
+	\Bigg( 
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]
+	\Bigg)^2
+	= 2 \Bigg( 
+		\sum\limits_{j \in \N_m} \left[ y_j - \sum_{k \in \N_p} A_{j,k} x_k \right]
+	\Bigg)
+	\sum\limits_{j \in \N_m} - A_{j,k}
+$$
+
+

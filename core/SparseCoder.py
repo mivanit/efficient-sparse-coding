@@ -178,8 +178,9 @@ class SparseCoder(object):
 				self.S[:,i] = feature_sign_search(
 					self.B, 
 					self.X[:,i], 
-					self.gamma, 
-					x0 = vec_randomize(self.S[:,i], rand_mod), # TODO: does this help or no?
+					self.gamma,
+					x0 = self.S[:,i]
+					# x0 = vec_randomize(self.S[:,i], rand_mod), # TODO: does this help or no?
 				)
 
 			val[2] = self.value()

@@ -77,7 +77,7 @@ def feature_sign_search(A, y, gamma, x0 = None):
 		i_sel = np.argmax(np.abs(grad) * (theta == 0))
 		i_deriv = grad[i_sel]
 		
-		print('SELECTING:\t%d\t%f' % (i_sel, i_deriv))
+		# print('SELECTING:\t%d\t%f' % (i_sel, i_deriv))
 
 		if i_deriv > gamma:
 			theta[i_sel] = -1
@@ -88,6 +88,8 @@ def feature_sign_search(A, y, gamma, x0 = None):
 		
 		x[i_sel] = 0.0
 		active_set.add(i_sel)
+
+		opcond_a = np.max(abs(grad[theta == 0]))
 	
 		while not np.allclose(opcond_a, 0):
 
@@ -111,8 +113,8 @@ def feature_sign_search(A, y, gamma, x0 = None):
 
 			# REVIEW: do we /really/ need to compute matrix inverse? can we minimize or at least compute inverse more efficiently?
 
-			print(theta_hat.shape)
-			print((A_hat.T @ y).shape)
+			# print(theta_hat.shape)
+			# print((A_hat.T @ y).shape)
 
 			x_hat_new = (
 				np.linalg.inv(A_hat.T @ A_hat)
@@ -147,9 +149,13 @@ def feature_sign_search(A, y, gamma, x0 = None):
 			
 			theta = sign(x)
 
-			opcond_a = opCond_a()
+			grad = comp_grad()
 
-		opcond_b = opCond_a()
+			opcond_a = np.max(abs(grad[theta == 0]))
+
+		grad = comp_grad()
+
+		opcond_b = np.max(abs(grad[theta != 0] + gamma * theta[theta != 0]))
 
 		
 	def opCond_a():

@@ -1,8 +1,8 @@
-n  		:  10
-sigma 	:  0.1
+n  		:  20
+sigma 	:  0.1	
 beta	:  0.00001
 c_const :  0.1
 delta   :  0.001
-file_X  :  ../data/uniform_z.npy
+file_X  :  ../data/test2.npy
 iterations : 10000
 method 	   : ds_feat
